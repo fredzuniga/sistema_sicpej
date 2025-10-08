@@ -1,0 +1,23 @@
+<!-- Modal de Confirmación -->
+<div class="modal fade" id="confirmModalCierrePaquete" tabindex="-1" aria-hidden="true" style="text-align: center;">
+    <div class="modal-dialog modal-dialog-centered1 modal-simple modal-add-new-cc">
+        <div class="modal-content">
+        <div class="modal-body p-0">
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            
+            
+            <p class="mt-5 mb-5">¿Está seguro que desea realizar el cierre del paquete # <strong>{{paquete.clave_paquete}}</strong>?</p>
+            
+            <div class="col-12 d-flex flex-wrap justify-content-center gap-4 row-gap-4 mt-5">
+                <button type="button" class="btn btn-primary" id="confirmSubmitCierre">
+                    <i class="fas fa-check"></i> Confirmar cierre
+                </button>
+
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i> Cancelar
+                </button>
+            </div>
+        </div>
+        </div>
+    </div>
+</div>

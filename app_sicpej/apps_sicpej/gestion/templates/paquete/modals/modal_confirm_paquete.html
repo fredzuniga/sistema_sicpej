@@ -1,0 +1,44 @@
+<!-- Modal de Confirmación -->
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered1 modal-simple modal-add-new-cc">
+        <div class="modal-content">
+            <div class="modal-body p-0">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+
+                <p>
+                    ¿Está seguro que desea registrar un nuevo paquete para el juzgado 
+                    <strong>{{ organo_jurisdiccional_actual.nombre }}, {{ organo_jurisdiccional_actual.municipio.descripcion }}</strong>?
+                </p>
+                <p class="text-muted">
+                    Una vez registrado, podrá comenzar a agregar expedientes a este paquete.
+                </p>
+
+                <!-- Input para la cantidad de expedientes -->
+                <div class="mb-3 px-3">
+                    <label for="cantidadPaquetes" class="form-label">Cantidad de paquetes</label>
+                    <input type="number" class="form-control" id="cantidadPaquetes" name="cantidad_paquetes" min="0" required>
+                    <div class="invalid-feedback">Por favor, ingrese una cantidad válida (1 o más).</div>
+                </div>
+
+                <div class="mb-3 px-3">
+                    <label for="id_clasificacion_paquete" class="form-label">Clasificación paquete</label>
+                    <select name="id_clasificacion_paquete" id="id_clasificacion_paquete" class="form-control select2 mb-5" required>
+                        <option value="">-- Seleccione una clasificación de paquete --</option>
+                        <option value="N">Normal</option>
+                        <option value="C">Concentración</option>   
+                    </select>
+                </div>
+
+                <div class="col-12 d-flex flex-wrap justify-content-center gap-4 row-gap-4 pb-3 mt-5">
+                    <button type="button" class="btn btn-primary" id="confirmSubmit">
+                        <i class="fas fa-check"></i> Confirmar Registro
+                    </button>
+
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times"></i> Cancelar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

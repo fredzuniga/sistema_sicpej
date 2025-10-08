@@ -1,0 +1,51 @@
+{% extends 'sicpej/base.html' %}
+
+{% block title %}Lista de usuarios{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <div class="row">
+            <div class="col-md-10">
+                <h5>Lista de usuarios</h5>
+            </div>
+            <div class="col-md-2 text-right">
+                <a href="{% url 'administracion:nuevo_usuario' %}" class="btn btn-primary">Nuevo usuario</a>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        
+        <div class="table-responsive text-nowrap">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Nombre Completo</th>
+                        <th>Email</th>
+                        <th>Juzgado</th>
+                        <th>Archivo Regional</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>{{ user.username }}</td>
+                        <td>{{ user.get_full_name }}</td>
+                        <td>{{ user.email }}</td>
+                        <td>{{ user.configuracion.juzgado|default:"-" }}</td>
+                        <td>{{ user.configuracion.archivo_regional|default:"-" }}</td>
+                        <td>
+                            <a href="{% url 'administracion:ver_usuario' user.pk %}" class="btn btn-sm btn-info">Ver</a>
+                            <a href="{% url 'administracion:editar_usuario' user.pk %}" class="btn btn-sm btn-warning">Editar</a>
+                            <a href="{% url 'administracion:eliminar_usuario' user.pk %}" class="btn btn-sm btn-danger">Eliminar</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

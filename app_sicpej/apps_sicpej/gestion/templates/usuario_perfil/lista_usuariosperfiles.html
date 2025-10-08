@@ -1,0 +1,67 @@
+{% extends 'sicpej/base.html' %}
+
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <div class="row">
+            <div class="col-md-10">
+                <h5>{{ titulo }}</h5>
+            </div>
+            {% if user.is_superuser %}
+            <div class="col-md-2 text-end">
+                <a href="{% url 'gestion:nuevo_usuarioperfil' %}" class="btn btn-primary mt-2">
+                    <i class="fas fa-plus"></i> Nueva asignación
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card-body">
+        <div class="table-responsive text-nowrap">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Perfil</th>
+                        <th>Usuario</th>
+                        <th>Archivo Regional</th>
+                        <th>Estatus</th>
+                        {% if user.is_superuser %}
+                        <th>Acciones</th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for usuarioperfil in usuarios_perfiles %}
+                    <tr>
+                        <td>{{ usuarioperfil.perfil.nombre }}</td>
+                        <td>({{ usuarioperfil.usuario }}) {{ usuarioperfil.usuario.first_name }} {{ usuarioperfil.usuario.last_name }}</td>
+                        <td>{{ usuarioperfil.archivo_regional.nombre|default:"-" }}</td>
+                        <td>
+                            {% if usuarioperfil.estatus == 1 %}
+                                <span class="badge bg-success">Activo</span>
+                            {% else %}
+                                <span class="badge bg-secondary">No activo</span>
+                            {% endif %}
+                        </td>
+                        {% if user.is_superuser %}
+                        <td>
+                            <a href="{% url 'gestion:editar_usuarioperfil' usuarioperfil.pk %}" class="btn btn-sm btn-primary">
+                                <i class="fas fa-edit"></i> Editar
+                            </a>
+                        </td>
+                        {% endif %}
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center">No hay asignaciones registradas.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

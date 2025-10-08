@@ -1,0 +1,215 @@
+{% load static %}
+<style>
+  .img-tribunal {
+    position: absolute;
+    left: 50%;
+    bottom: 4%;
+    transform: translateX(-50%);
+    opacity: 0.6;
+  }
+</style>
+
+<aside id="layout-menu" class="layout-menu menu-vertical menu" data-bs-theme="dark">
+    <img src="{% static "assets_sicpej/img/android-chrome-192x192.png" %}" alt="" width="150" height="150" class="img-tribunal">
+    <div class="app-brand demo">
+      <a href="index.html" class="app-brand-link">
+        
+        <span class="app-brand-text demo menu-text fw-semibold ms-2">SICPEJ TSJ</span>
+      </a>
+
+      <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+          <path
+            d="M8.47365 11.7183C8.11707 12.0749 8.11707 12.6531 8.47365 13.0097L12.071 16.607C12.4615 16.9975 12.4615 17.6305 12.071 18.021C11.6805 18.4115 11.0475 18.4115 10.657 18.021L5.83009 13.1941C5.37164 12.7356 5.37164 11.9924 5.83009 11.5339L10.657 6.707C11.0475 6.31653 11.6805 6.31653 12.071 6.707C12.4615 7.09747 12.4615 7.73053 12.071 8.121L8.47365 11.7183Z"
+            fill-opacity="0.9" />
+          <path
+            d="M14.3584 11.8336C14.0654 12.1266 14.0654 12.6014 14.3584 12.8944L18.071 16.607C18.4615 16.9975 18.4615 17.6305 18.071 18.021C17.6805 18.4115 17.0475 18.4115 16.657 18.021L11.6819 13.0459C11.3053 12.6693 11.3053 12.0587 11.6819 11.6821L16.657 6.707C17.0475 6.31653 17.6805 6.31653 18.071 6.707C18.4615 7.09747 18.4615 7.73053 18.071 8.121L14.3584 11.8336Z"
+            fill-opacity="0.4" />
+        </svg>
+      </a>
+    </div>
+
+    <div class="menu-inner-shadow"></div>
+
+    <ul class="menu-inner py-1">
+      <!-- Dashboards -->
+      <li class="menu-item open">
+        <a href="{% url 'administracion:dashboard_estadisticas' %}" class="menu-link">
+          <i class="menu-icon icon-base ri ri-home-smile-line"></i>
+          <div data-i18n="Dashboard">Dashboard</div>
+        </a>
+      </li>
+
+      {% if user.configuracion.es_administrador_general %}
+        <li class="menu-header small mt-5">
+          <span class="menu-header-text" data-i18n="Administración">Administración</span>
+        </li>
+        {% with request.resolver_match.url_name as current_view %}
+        <li class="menu-item {% if current_view == 'lista_archivos_regional' or current_view == 'lista_juzgados' or current_view == 'lista_instancias' or current_view == 'lista_materias' or current_view == 'lista_tipos_juicio' or current_view == 'lista_distritos' %} active open {% endif %}">
+          <a href="javascript:void(0);" class="menu-link menu-toggle">
+            <i class="menu-icon icon-base ri ri-folder-2-line"></i>
+            <div data-i18n="Catálogos"> Catálogos</div>
+          </a>
+          <ul class="menu-sub">
+            <li class="menu-item {% if request.resolver_match.url_name == 'lista_archivos_regional' %}active{% endif %}">
+              <a href="{% url 'administracion:lista_archivos_regional' %}" class="menu-link">
+                <div data-i18n="Archivo regional">Archivo regional</div>
+              </a>
+            </li>
+            <li class="menu-item {% if request.resolver_match.url_name == 'lista_juzgados' %}active{% endif %}" style="display:none;">
+                <a href="{% url 'administracion:lista_juzgados' %}" class="menu-link">
+                  <div data-i18n="Juzgados">Juzgados</div>
+                </a>
+            </li>
+            <li class="menu-item {% if request.resolver_match.url_name == 'lista_instancias' %}active{% endif %}">
+              <a href="{% url 'administracion:lista_instancias' %}" class="menu-link">
+                <div data-i18n="Instancias">Instancias</div>
+              </a>
+            </li>
+            <li class="menu-item {% if request.resolver_match.url_name == 'lista_materias' %}active{% endif %}">
+              <a href="{% url 'administracion:lista_materias' %}" class="menu-link">
+                <div data-i18n="Materias">Materias</div>
+              </a>
+            </li>
+            <li class="menu-item {% if request.resolver_match.url_name == 'lista_distritos' %}active{% endif %}">
+              <a href="{% url 'administracion:lista_distritos' %}" class="menu-link">
+                <div data-i18n="Distritos judiciales">Distritos judiciales</div>
+              </a>
+            </li>
+            <li class="menu-item {% if request.resolver_match.url_name == 'lista_regiones' %}active{% endif %}">
+              <a href="{% url 'administracion:lista_regiones' %}" class="menu-link">
+                <div data-i18n="Regiones judiciales">Regiones judiciales</div>
+              </a>
+            </li>
+            <li class="menu-item {% if request.resolver_match.url_name == 'lista_organosjuridiccionales' %}active{% endif %}">
+              <a href="{% url 'administracion:lista_organosjurisdiccionales' %}" class="menu-link">
+                <div data-i18n="Organos jurisdiccionales">Organos jurisdiccionales</div>
+              </a>
+            </li>
+            <li class="menu-item {% if request.resolver_match.url_name == 'lista_perfiles' %}active{% endif %}">
+              <a href="{% url 'gestion:lista_perfiles' %}" class="menu-link">
+                <div data-i18n="Perfiles">Perfiles</div>
+              </a>
+            </li>
+          </ul>
+        </li>
+        {% endwith %}
+      {% endif %}
+
+      {% if not user.configuracion.es_usuario_consulta %}
+      <li class="menu-header small mt-5">
+        <span class="menu-header-text" data-i18n="Expedientes">Expedientes</span>
+      </li>
+      <li class="menu-item">
+        <a href="javascript:void(0);" class="menu-link menu-toggle">
+          <i class="menu-icon icon-base ri ri-folder-2-line"></i>
+          <div data-i18n="Gestión">Gestión</div>
+        </a>
+        <ul class="menu-sub">
+          {% if user.configuracion.es_administrador_general %}
+          <li class="menu-item">
+            <a href="{% url 'gestion:lista_paquetes' %}" class="menu-link">
+              <div data-i18n="Paquetes">Paquetes</div>
+            </a>
+          </li>
+          <li class="menu-item">
+            <a href="{% url 'gestion:lista_expedientes' %}" class="menu-link">
+              <div data-i18n="Expedientes">Expedientes</div>
+            </a>
+          </li>
+          <li class="menu-item">
+            <a href="{% url 'gestion:lista_usuariosperfiles' %}" class="menu-link">
+              <div data-i18n="Capturistas">Capturistas</div>
+            </a>
+          </li>
+          {% endif %}
+
+          {% if user.configuracion.es_administrador_regional %}
+          <li class="menu-item">
+            <a href="{% url 'gestion:lista_paquetes' %}" class="menu-link">
+              <div data-i18n="Paquetes">Paquetes</div>
+            </a>
+          </li>
+          <li class="menu-item">
+            <a href="{% url 'gestion:lista_expedientes' %}" class="menu-link">
+              <div data-i18n="Expedientes">Expedientes</div>
+            </a>
+          </li>
+          <li class="menu-item">
+            <a href="{% url 'gestion:lista_usuariosperfiles' %}" class="menu-link">
+              <div data-i18n="Capturistas">Capturistas</div>
+            </a>
+          </li>
+          {% endif %}
+
+          {% if user.configuracion.es_capturista_regional%}
+          <li class="menu-item">
+            <a href="{% url 'gestion:lista_paquetes' %}" class="menu-link">
+              <div data-i18n="Paquetes">Paquetes</div>
+            </a>
+          </li>
+          {% endif %}
+        </ul>
+      </li>
+      {% endif %}
+
+      <li class="menu-header small mt-5">
+        <span class="menu-header-text" data-i18n="Consultas">Consultas</span>
+      </li>
+
+      <li class="menu-item">
+        <a href="javascript:void(0);" class="menu-link menu-toggle">
+          <i class="menu-icon icon-base ri ri-file-search-line"></i>
+          <div data-i18n="Consultas">Consultas</div>
+        </a>
+        <ul class="menu-sub">
+          {% if user.configuracion.es_usuario_consulta %}
+          <li class="menu-item">
+            <a href="{% url 'gestion:lista_paquetes' %}" class="menu-link">
+              <div data-i18n="Paquetes">Paquetes</div>
+            </a>
+          </li>
+          <li class="menu-item">
+            <a href="{% url 'gestion:lista_expedientes' %}" class="menu-link">
+              <div data-i18n="Expedientes">Expedientes</div>
+            </a>
+          </li>
+          {% endif %}
+        </ul>
+      </li>
+
+
+      {% if user.configuracion.es_administrador_general %}
+      <li class="menu-header small mt-5">
+        <span class="menu-header-text" data-i18n="Usuarios">Usuarios</span>
+      </li>
+      <li class="menu-item">
+        <a href="javascript:void(0);" class="menu-link menu-toggle">
+          <i class="menu-icon icon-base ri ri-user-line"></i>
+          <div data-i18n="Usuarios">Usuarios</div>
+        </a>
+        <ul class="menu-sub">
+          <li class="menu-item">
+            <a href="{% url 'administracion:lista_usuarios' %}" class="menu-link">
+              <div data-i18n="Listado">Listado</div>
+            </a>
+          </li>
+          <li class="menu-item">
+            <a href="{% url 'administracion:nuevo_usuario' %}" class="menu-link">
+              <div data-i18n="Nuevo">Nuevo</div>
+            </a>
+          </li>
+        </ul>
+      </li>
+      {% endif %}
+         
+    </ul>
+  </aside>
+
+<div class="menu-mobile-toggler d-xl-none rounded-1">
+<a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large text-bg-secondary p-2 rounded-1">
+    <i class="ri ri-menu-line icon-base"></i>
+    <i class="ri ri-arrow-right-s-line icon-base"></i>
+</a>
+</div>
+<!-- / Menu -->

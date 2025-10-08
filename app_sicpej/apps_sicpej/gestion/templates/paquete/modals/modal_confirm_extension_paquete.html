@@ -1,0 +1,22 @@
+<!-- Modal de Confirmación -->
+<div class="modal fade" id="confirmModalNuevoExpediente" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered1 modal-simple modal-add-new-cc">
+        <div class="modal-content">
+        <div class="modal-body p-0">
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <p>¿Está seguro de registrar una extensión del paquete <strong id="paqueteClave"></strong> para <br> <strong>{{ organo_jurisdiccional_actual.nombre }}, {{ organo_jurisdiccional_actual.municipio.descripcion }}</strong>?</p>
+            <p class="text-muted">Una vez registrado, podrá comenzar a agregar expedientes a ese paquete.</p>
+
+            <div class="col-12 d-flex flex-wrap justify-content-center gap-4 row-gap-4">
+                <button type="button" class="btn btn-primary" id="confirmSubmit">
+                    <i class="fas fa-check"></i> Confirmar Registro
+                </button>
+
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i> Cancelar
+                </button>
+            </div>
+        </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,151 @@
+{% extends 'sicpej/base.html' %}
+
+
+{% block title %}Detalle del Paquete: #{{ paquete.numero_paquete }} - {{ paquete.juzgado.nombre }}, {{ paquete.juzgado.municipio.descripcion }}{% endblock %}
+
+{% block content %}
+{% include "paquete/paquete_breadcrumb.html" %}
+
+<div class="card card-primary card-outline">
+    <div class="card-header">
+        <div class="row">
+            <div class="col-md-8">
+                <h4 class="card-title"><b>Detalle del paquete: #{{ paquete.numero_paquete }}</b></h4>
+            </div>
+            <div class="col-md-4 text-right">
+                {% include "paquete/modals/modal_confirm_expediente.html" %}
+                <button type="submit" class="btn btn-primary waves-effect waves-light" id="btnModalNuevoExpediente">Nuevo expediente</button>
+                <a href="javascript:history.back()" class="btn btn-secondary me-2">Regresar</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <dl class="row">
+                    <dt class="col-sm-4">Clave:</dt>
+                    <dd class="col-sm-8">{{ paquete.clave|default:"-" }}</dd>
+                    
+                    <dt class="col-sm-4">Juzgado:</dt>
+                    <dd class="col-sm-8">{{ paquete.juzgado.nombre }}, {{ paquete.juzgado.municipio.descripcion }}</dd> 
+                    
+                    <dt class="col-sm-4">Estado:</dt>
+                    <dd class="col-sm-8">
+                        <span class="badge 
+                            {% if paquete.estatus == 1 %}bg-info
+                            {% elif paquete.estatus == 2 %}bg-warning
+                            {% else %}bg-success
+                            {% endif %}">
+                            {{ paquete.get_estatus_display }}
+                        </span>
+                    </dd>
+                </dl>
+            </div>
+            <div class="col-md-6">
+                <dl class="row">
+                    <dt class="col-sm-4">Fecha Registro:</dt>
+                    <dd class="col-sm-8">{{ paquete.fecha_registro|date:"d/m/Y H:i" }}</dd>
+                    
+                    <dt class="col-sm-4">Expedientes:</dt>
+                    <dd class="col-sm-8">{{ paquete.expedientes.count }}</dd>
+                </dl>
+            </div>
+        </div>
+        
+        <div class="row mt-3 mb-5">
+            <div class="col-md-6 mb-4">
+                <p>Descripción:</p>
+                <div class="border p-3 bg-label-secondary">
+                    {{ paquete.descripcion|default:"-"|linebreaks }}
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <p>Notas:</p>
+                <div class="border p-3 bg-label-secondary">
+                    {{ paquete.nota|default:"-"|linebreaks }}
+                </div>
+            </div>
+        </div>
+
+        <hr>
+        
+        <div class="row mt-5 mb-5">
+            <h5>Expedientes en este paquete</h5>
+        </div>
+
+        {% include "expediente/filtros/filtro_lista_expedientes.html" %}
+
+        <div class="table-responsive text-nowrap">
+            <table class="table table-bordered table-hover">
+                <thead class="thead-light">
+                    <tr>
+                        <th>No. expediente</th>
+                        <th>Fecha de registro</th>
+                        <th>Instancia</th>
+                        <th>Actor</th>
+                        <th>Demandado</th>
+                        <th>Fecha concluido</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for expediente in expedientes %}
+                    <tr>
+                        <td> {{ expediente.expediente_toca }} </td>
+                        <td> {{ expediente.fecha_registro }} </td>
+                        <td> {{ expediente.instancia }} </td>
+                        <td> {{ expediente.actor }} </td>
+                        <td> {{ expediente.demandado }} </td>
+                        <td> {{expediente.fecha_concluido}} </td>
+                        <td>
+                            
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center">No hay expedientes registrados</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            {% if expedientes %}
+                <div class="row mt-5">
+                    <div class="col-md-12 m-5">
+                        {% include 'sicpej/partials/paginacion_expedientes.html' %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+        
+    </div>
+    <div class="card-footer">
+        
+    </div>
+</div>
+{% endblock %}
+
+{% block javascript %}
+<script>
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Obtener elementos
+    var btnModalNuevoExpediente = document.getElementById('btnModalNuevoExpediente');
+    var confirmModalNuevoExpediente = new bootstrap.Modal(document.getElementById('confirmModalNuevoExpediente'));
+    var confirmSubmit = document.getElementById('confirmSubmit');
+    
+    // Mostrar modal al hacer clic en el botón de submit
+    btnModalNuevoExpediente.addEventListener('click', function(e) {
+        e.preventDefault();
+        confirmModalNuevoExpediente.show();
+    });
+    
+    confirmSubmit.addEventListener('click', function() {
+        var paqueteId = {{ paquete.id }};
+        window.location.href = '{% url 'gestion:nuevo_expediente' paquete.pk %}';
+    });
+});
+</script>
+{% endblock %}

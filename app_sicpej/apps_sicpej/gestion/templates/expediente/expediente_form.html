@@ -1,0 +1,1318 @@
+{% extends 'sicpej/base.html' %}
+{% load static %}
+
+{% block title %}Nuevo expediente: Paquete #{{ expediente.clave_expediente|default_if_none:expediente.numero }}
+ {% endblock %}
+
+{% block content %}
+
+<div class="col-md-12" id="app-expedientes">
+  
+  <div class="card">
+    
+    <div class="card-header d-flex align-items-center justify-content-between">
+      <h5 class="mb-0">{{ titulo }}: Paquete #{{ paquete.clave_paquete|default_if_none:paquete.numero_paquete }} <br>
+          <span style="display: none;">Expediente #{{ expediente.clave_expediente|default_if_none:expediente.numero }}</span>
+      </h5>
+        <span style="font-size: 1.15em;">
+          <b>Órgano jurisdiccional:</b>{{ paquete.organo_jurisdiccional.nombre }}, {{ paquete.organo_jurisdiccional.municipio.descripcion }}
+          <br>
+          <b>Archivo regional:</b> {{ expediente.archivo_regional.nombre }}
+        </span>
+
+      <div class="row justify-content-end">
+            <div class="col-sm-12 d-flex justify-content-end">
+                <a href="javascript:history.back()" class="btn btn-secondary">Regresar</a>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="bs-stepper wizard-numbered mt-4" id="wizard-validation">
+          <div class="bs-stepper-header">
+            {% for etapa_nombre, fields in form.etapas %}
+              <div class="step" data-target="#step{{ forloop.counter }}">
+                <button type="button" class="step-trigger">
+                  <span class="bs-stepper-circle">
+                    <i class="icon-base ri ri-check-line"></i>
+                  </span>
+                  <span class="bs-stepper-label">
+
+                    <span class="bs-stepper-number">
+                      {{ forloop.counter|stringformat:"02d" }}
+                    </span>
+                    <span class="d-flex flex-column gap-1 ms-2">
+                      <span class="bs-stepper-title">{{ etapa_nombre }}</span>
+                      <span class="bs-stepper-subtitle">
+                        {{ etapa_nombre }}
+                      </span>
+                    </span>
+                  </span>
+                </button>
+              </div>
+
+              {% if not forloop.last %}
+                <div class="line"></div>
+              {% endif %}
+            {% endfor %}
+          </div>
+
+          <div class="bs-stepper-content">
+            <form method="post" id="wizard-validation-form" enctype="multipart/form-data">
+              {% csrf_token %}
+              <input type="hidden" name="id_expediente" value="{{ expediente.id }}" id="id_expediente">
+            
+              {% for etapa_nombre, fields in form.etapas %}
+                <div id="step{{ forloop.counter }}" class="content">
+                  
+
+                  <div class="row g-5 mt-2">
+                    {% for field in fields %}
+                        {% if field.name in form.one_column_fields %}
+                          <div class="col-12 mb-5">
+                        {% elif field.name in form.two_column_fields %}
+                          <div class="col-md-6 mb-5">
+                        {% elif field.name in form.three_column_fields %}
+                          <div class="col-md-4 mb-5">
+                        {% elif field.name in form.four_column_fields %}
+                          <div class="col-md-3 mb-5">
+                        {% else %}
+                          <div class="col-12 mb-5">
+                        {% endif %}
+                          
+                          {% if field.name not in form.boolean_field_names %}
+                              <label for="{{ field.id_for_label }}" class="form-label" style="font-weight:800;">
+                                  {{ field.label }}
+                              </label>
+                          {% endif %}
+
+                          {% if field.name in form.date_field_names %}
+                            <div class="form-floating form-floating-outline">
+                              <input type="text"
+                                  class="form-control {% if field.errors %}is-invalid{% endif %}"
+                                  placeholder="YYYY-MM-DD"
+                                  id="flatpickr-{{ field.name }}"
+                                  name="{{ field.name }}"
+                                  value="{{ field.value|date:'Y-m-d' }}">
+                              <label for="flatpickr-{{ field.name }}">{{ field.label }}</label>
+                            </div>
+                    
+                          {% elif field.name in form.boolean_field_names %}
+                            
+                            <div class="form-check form-switch mt-2">
+                                  {% if field.name == 'acumulado' %}
+                                  {% elif field.name == 'cuadernillo' %}
+                                  {% elif field.name == 'avocamiento' %}
+                                  {% elif field.name == 'tomo' %}
+
+                                  {% else %}
+                                    <input type="checkbox" name="{{ field.name }}" id="{{ field.id_for_label }}"
+                                    class="form-check-input {% if field.errors %}is-invalid{% endif %}"
+                                    {% if field.value %}checked{% endif %}>
+                                  {% endif %}
+
+                                  <label class="form-check-label" for="{{ field.id_for_label }}">
+                                      {% if field.name == 'tomo' %}
+                                          ¿Qué tomo es?
+                                      {% elif field.name == 'acumulado' %}
+                                      {% elif field.name == 'cuadernillo' %}
+                                      {% elif field.name == 'avocamiento' %}
+                                      {% elif field.name == 'concluido' %}
+                                          ¿Concluido?
+                                      {% else %}
+                                          {{ field.label }}
+                                      {% endif %}
+                                  </label>
+
+                                  {%if field.name == 'cuadernillo' %}
+                                  <div v-if="cuadernillo" style="margin-top:-40px;">
+                                    <h5>Agregar Cuadernillos</h5>
+
+                                    <table class="table table-bordered table-hover">
+                                        <thead class="thead-light">
+                                          <tr>
+                                            <th>Tipo</th>
+                                            <th>Rango Inicial</th>
+                                            <th>Rango Final</th>
+                                            <th>Acciones</th>
+                                          </tr>
+                                        </thead>
+                                        <tbody>
+                                          <tr v-for="(cuadernillo, index) in cuadernillos" :key="cuadernillo.id || index">
+                                          <td>
+                                            <input v-model="cuadernillo.tipo" class="form-control" style="padding: 0.4em;" placeholder="Tipo de cuadernillo"/>
+                                          </td>
+                                          <td>
+                                            <input v-model="cuadernillo.rango_inicial" class="form-control" style="padding: 0.4em;" placeholder="Rango inicial"/>
+                                          </td>
+                                          <td>
+                                            <input v-model="cuadernillo.rango_final" class="form-control" style="padding: 0.4em;" placeholder="Rango final"/>
+                                          </td>
+                                          <td>
+                                            <button @click="guardarCuadernillo(cuadernillo)" class="btn btn-primary" v-if="cuadernillo.id" type="button"><i class="menu-icon  icon-base ri ri-save-3-fill"></i> Modificar</button>
+                                            <button @click="eliminarCuadernillo(cuadernillo, index)" class="btn btn-secondary" type="button"><i class="menu-icon  icon-base ri ri-delete-bin-line"></i> Eliminar</button>
+                                          </td>
+                                        </tr>
+
+                                        </tbody>
+                                      </table>
+
+                                      <button @click="agregarFilaCuadernillo" class="btn btn-primary mt-5" type="button"><i class="menu-icon icon-base ri ri-add-fill"></i> Agregar Cuadernillo</button>
+                                      <button @click="guardarCuadernillos" v-if="mostrarBotonGuardarCuadernillos" class="btn btn-primary mt-5 ms-2" type="button"><i class="menu-icon  icon-base ri ri-save-3-fill"></i> Guardar Cuadernillo</button>
+                                  </div>
+                                  <hr>
+                                  {% endif %}
+
+                                  {% if field.name == 'acumulado' %}
+                                  <div v-if="acumulado" style="margin-top:-40px;">
+                                    <h5>Agregar Acumulados</h5>
+
+                                    <table class="table table-bordered table-hover">
+                                      <thead class="thead-light">
+                                        <tr>
+                                          <th>N° Expediente</th>
+                                          <th>Organos jurisdiccionales</th>
+                                          <th>Rango Inicial</th>
+                                          <th>Rango Final</th>
+                                          <th>Acciones</th>
+                                        </tr>
+                                      </thead>
+                                      <tbody>
+                                        {{ organosJurisdiccionales }}
+                                        <tr v-for="(acumulado, index) in acumulados" :key="acumulado.id || index">
+                                           
+                                          <td>
+                                            <input 
+                                              v-model="acumulado.numero_expediente" 
+                                              class="form-control form-control-sm" 
+                                              style="padding: 0.4em;"
+                                              placeholder="Ingrese número"
+                                            />
+                                          </td>
+                                          <td>
+                                            
+                                            <select
+                                              :ref="'selectOrganoJurisdiccional' + index"
+                                              v-model="acumulado.organo_jurisdiccional"
+                                              class="form-select select2"
+                                            >
+                                              <option value="">Seleccione órgano</option>
+                                              <option v-for="organo in organosJurisdiccionales" 
+                                                      :value="organo.id"
+                                                      :key="organo.id">
+                                                [[ organo.text ]]
+                                              </option>
+                                            </select>
+                                          </td>
+                                          <td>
+                                            <input 
+                                              v-model="acumulado.rango_inicial" 
+                                              class="form-control form-control-sm" 
+                                              style="padding: 0.4em;"
+                                              placeholder="Rango inicial"
+                                            />
+                                          </td>
+                                          <td>
+                                            <input 
+                                              v-model="acumulado.rango_final" 
+                                              class="form-control form-control-sm" 
+                                              style="padding: 0.4em;"
+                                              placeholder="Rango final"
+                                            />
+                                          </td>
+                                          <td>
+                                            <button 
+                                              @click="guardarAcumulado(acumulado)" 
+                                              class="btn btn-primary btn-sm"
+                                              v-if="acumulado.id"
+                                              type="button"
+                                            >
+                                              <i class="menu-icon  icon-base ri ri-save-3-fill"></i> Modificar
+                                            </button>
+                                            <button 
+                                              @click="eliminarAcumulado(acumulado, index)" 
+                                              class="btn btn-secondary btn-sm mt-1"
+                                              type="button"
+                                            >
+                                              <i class="menu-icon  icon-base ri ri-delete-bin-line"></i>Eliminar
+                                            </button>
+                                          </td>
+                                        </tr>
+                                      </tbody>
+                                    </table>
+
+                                    <div class="mt-3">
+                                      <button @click="agregarFilaAcumulado" class="btn btn-primary" type="button">
+                                        <i class="menu-icon icon-base ri ri-add-fill"></i> Agregar acumulado
+                                      </button>
+                                      <button @click="guardarAcumulados" class="btn btn-primary ms-2" type="button" v-if="mostrarBotonGuardarAcumulados">
+                                        <i class="menu-icon  icon-base ri ri-save-3-fill"></i> Guardar acumulados
+                                      </button>
+                                    </div>
+                                  </div>
+                                  <hr>
+                                  {% endif %}
+
+                                  {% if field.name == 'avocamiento' %}
+                                  <div v-if="avocamiento" style="margin-top:-40px;">
+                                    <h5>Agregar Avocamientos</h5>
+
+                                    <table class="table table-bordered table-hover">
+                                      <thead class="thead-light">
+                                        <tr>
+                                          <th>N° Expediente</th>
+                                          <th>Órgano Jurisdiccional</th>
+                                          <th>Rango Inicial</th>
+                                          <th>Rango Final</th>
+                                          <th>Acciones</th>
+                                        </tr>
+                                      </thead>
+                                      <tbody>
+                                        <tr v-for="(avocamiento, index) in avocamientos" :key="avocamiento.id || index">
+                                          <td>
+                                            <input v-model="avocamiento.numero_expediente" class="form-control" style="padding: 0.4em;" />
+                                          </td>
+                                          <td>
+                                            <select
+                                              :ref="'selectOrganoJurisdiccionalAvocamiento' + index"
+                                              v-model="avocamiento.organo_jurisdiccional"
+                                              class="form-select form-select-sm select2 filtro-select"
+                                              style="padding: 0.4em;"
+                                            >
+                                              <option disabled value="">Seleccione un órgano</option>
+                                              <option v-for="organo in organosJurisdiccionales" 
+                                                      :value="organo.id"
+                                                      :key="organo.id">
+                                                [[ organo.text ]]
+                                              </option>
+                                            </select>
+                                          </td>
+                                          <td>
+                                            <input v-model="avocamiento.rango_inicial" class="form-control" style="padding: 0.4em;" />
+                                          </td>
+                                          <td>
+                                            <input v-model="avocamiento.rango_final" class="form-control" style="padding: 0.4em;" />
+                                          </td>
+                                          <td>
+                                            <button @click="guardarAvocamiento(avocamiento)" class="btn btn-primary" v-if="avocamiento.id" type="button"><i class="menu-icon  icon-base ri ri-save-3-fill"></i> Guardar</button>
+                                            <button @click="eliminarAvocamiento(avocamiento, index)" class="btn btn-secondary mt-1" type="button"><i class="menu-icon  icon-base ri ri-delete-bin-line"></i> Eliminar</button>
+                                          </td>
+                                        </tr>
+                                      </tbody>
+                                    </table>
+
+                                    <button @click="agregarFilaAvocamiento" class="btn btn-primary mt-5" type="button"><i class="menu-icon icon-base ri ri-add-fill"></i> Agregar avocamiento</button>
+                                    <button @click="guardarAvocamientos" class="btn btn-primary mt-5 ms-2" type="button" v-if="mostrarBotonGuardarAvocamientos"><i class="menu-icon  icon-base ri ri-save-3-fill"></i> Guardar avocamientos</button>
+                                  </div>
+                                  {% endif %}
+                            </div>
+                    
+                          {% elif field.name in "instancia materia tipo_juicio distrito_judicial municipio juzgado" %}
+                            <select name="{{ field.name }}" id="{{ field.id_for_label }}" class="form-select {% if field.errors %}is-invalid{% endif %} select2" required>
+                              {% for value, label in field.field.choices %}
+                                <option value="{{ value }}" {% if value == field.value %}selected{% endif %}>{{ label }}</option>
+                              {% endfor %}
+                            </select>
+                          {% elif field.name == "documento_prestamo" %}
+                            
+                              {{ field }}
+                              {% if field.field.widget.input_type == "file" and field.value %}
+                                <a href="{{ field.value.url }}" target="_blank" class="btn btn-primary btn-link mt-3">
+                                  📄 Ver archivo actual
+                                </a>
+                              {% endif %}
+                            {% else %}
+
+                            {{ field }}
+                          {% endif %}
+                    
+                          {% if field.help_text %}
+                            <div class="form-text">{{ field.help_text }}</div>
+                          {% endif %}
+                    
+                          {% for error in field.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                          {% endfor %}
+                        </div>
+
+                      
+
+                    {% endfor %}
+
+                    <div class="col-12 d-flex justify-content-between">
+                      {# Botón “Anterior” (deshabilitado en el primer paso) #}
+                      <button
+                        type="button"
+                        class="btn btn-outline-secondary btn-prev"
+                        {% if forloop.first %}disabled{% endif %}
+                      >
+                        <i class="icon-base ri ri-arrow-left-line icon-sm scaleX-n1-rtl me-sm-1 me-0"></i>
+                        <span class="align-middle d-sm-inline-block d-none">Anterior</span>
+                      </button>
+
+                      {% if not forloop.last %}
+                        {# Botón “Siguiente” #}
+                        <button type="button" class="btn btn-primary btn-next step-{{ forloop.counter }}" data-next="{{ forloop.counter }}">
+                          <span class="align-middle d-sm-inline-block d-none me-sm-1">Siguiente</span>
+                          <i class="icon-base ri ri-arrow-right-line icon-sm"></i>
+                        </button>
+                      {% else %}
+                        <div>
+                          <button type="button" class="btn btn-primary waves-effect waves-light me-2 btn-next">{{ accion }}</button>
+
+                          <a href="javascript:history.back()" class="btn btn-secondary">Cancelar y regresar</a>
+                        </div>
+                      {% endif %}
+                    </div>
+                  </div>
+
+
+                </div>
+              {% endfor %}
+
+            </form>
+          </div>
+
+        </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block javascript %}
+
+
+<link rel="stylesheet" href="{% static 'assets_sicpej/vendor/libs/@form-validation/form-validation.css' %}" />
+
+<!-- Vendors JS (en el footer preferentemente) -->
+<script src="{% static 'assets_sicpej/vendor/libs/@form-validation/popular.js' %}"></script>
+<script src="{% static 'assets_sicpej/vendor/libs/@form-validation/bootstrap5.js' %}"></script>
+<!-- AutoFocus plugin, automatically focus on the first invalid input -->
+<script src="{% static 'assets_sicpej/vendor/libs/@form-validation/auto-focus.js' %}"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+<script>
+    function getCSRFToken() {
+      return document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+    }
+
+    $('#id_materia').prop('disabled', true); 
+    $('#id_instancia').prop('disabled', true);
+    $('#id_distrito_judicial').prop('disabled', true); 
+
+    new Vue({
+      el: '#app-expedientes',
+      delimiters: ['[[', ']]'],
+      data: {
+        paqueteId: '{{ paquete.id }}',
+        acumulado: {{ expediente.acumulado|yesno:"true,false" }},
+        cuadernillo: {{ expediente.cuadernillo|yesno:"true,false" }},
+        avocamiento: {{ expediente.avocamiento|yesno:"true,false" }},
+        tabla: '',
+        search: '{{ search }}',
+        per_page: '{{ per_page }}',
+        filtros: [],
+        modalData: {},
+        cuadernillos: [],
+        acumulados: [],
+        avocamientos: [],
+        organosJurisdiccionales: [],
+        tiposCuadernillo: [],
+        expedienteId: {{ expediente.pk }}, // Reemplaza con el ID real
+        organoJurisdiccionalId: {{ expediente.organo_jurisdiccional.pk }} // Reemplaza con el ID real
+      },
+      mounted() {
+        this.cargarCuadernillos();
+        this.cargarAcumulados();
+        this.cargarAvocamientos();
+        this.cargarOrganosJurisdiccionales();
+        this.cargarTipoCuadernillos();
+      },
+      updated() {
+        //this.initSelect2();
+        this.initSelectForList( this.cuadernillos, 'selectTipo', 'tipo_cuadernillo', { placeholder: 'Seleccione tipo' });
+        this.initSelectForList( this.acumulados, 'selectOrganoJurisdiccional', 'organo_jurisdiccional', { placeholder: 'Seleccione órgano' });
+        this.initSelectForList( this.avocamientos, 'selectOrganoJurisdiccionalAvocamiento', 'organo_jurisdiccional', { placeholder: 'Seleccione órgano' });
+      },
+      computed: {
+        mostrarBotonGuardarCuadernillos() {
+          return this.cuadernillos.some(c => c.id === null);
+        },
+        mostrarBotonGuardarAvocamientos() {
+          return this.avocamientos.some(c => c.id === null);
+        },
+        mostrarBotonGuardarAcumulados() {
+          return this.acumulados.some(c => c.id === null);
+        }
+      },
+      methods: {
+        cargarOrganosJurisdiccionales() {
+          $.ajax({
+            url: '{% url "gestion:api_lista_organos_jurisdiccionales" %}',
+            method: 'GET',
+            dataType: 'json',
+            success: (response) => {
+              this.organosJurisdiccionales = response.results;
+              //console.log(response.results);
+              this.$forceUpdate(); // Asegura la actualización de la vista
+            },
+            error: (xhr, status, error) => {
+              console.error('Error al cargar órganos jurisdiccionales:', error);
+              alert('Error al cargar la lista de órganos jurisdiccionales');
+            }
+          });
+          this.initSelectForList(
+            this.acumulados,
+            'selectOrganoJurisdiccional',
+            'organo_jurisdiccional',
+            { placeholder: 'Seleccione órgano' }
+          );
+        },
+        cargarTipoCuadernillos(){
+          $.ajax({
+            url: '{% url "gestion:api_lista_tipos_cuadernillos" %}',
+            method: 'GET',
+            dataType: 'json',
+            success: (response) => {
+              this.tiposCuadernillo = response.results;
+              this.$forceUpdate(); // Asegura la actualización de la vista
+            },
+            error: (xhr, status, error) => {
+              console.error('Error al cargar tipos de cuadernillos:', error);
+              alert('Error al cargar la lista de tipos de cuadernillos');
+            }
+          });
+          this.initSelectForList(
+            this.cuadernillos,
+            'selectTipo',
+            'tipo_cuadernillo',
+            { placeholder: 'Seleccione tipo' }
+          );
+        },
+        initSelect2() {
+          this.$nextTick(() => {
+            this.cuadernillos.forEach((item, index) => {
+              const ref = this.$refs['selectTipo' + index];
+              if (ref && !$(ref).hasClass('select2-hidden-accessible')) {
+                $(ref)
+                  .select2({ width: 'resolve' })
+                  .val(item.tipo)
+                  .trigger('change');
+
+                // Sincronizar valor al cambiar
+                $(ref).on('change', (e) => {
+                  item.tipo = e.target.value;
+                });
+              }
+            });
+            this.acumulados.forEach((item, index) => {
+              const ref = this.$refs['selectTipo' + index];
+              if (ref && !$(ref).hasClass('select2-hidden-accessible')) {
+                $(ref)
+                  .select2({ width: 'resolve' })
+                  .val(item.tipo)
+                  .trigger('change');
+
+                // Sincronizar valor al cambiar
+                $(ref).on('change', (e) => {
+                  item.tipo = e.target.value;
+                });
+              }
+            });
+          });
+        },
+        initSelectForList(items, refPrefix, property, options = {}) {
+          this.$nextTick(() => {
+            if (!items) return;
+            
+            items.forEach((item, index) => {
+              const ref = this.$refs[`${refPrefix}${index}`];
+              if (ref && !$(ref).hasClass('select2-hidden-accessible')) {
+                const $select = $(ref);
+                
+                $select.select2({
+                  width: 'resolve',
+                  ...options
+                }).val(item[property]).trigger('change');
+                
+                $select.on('change', (e) => {
+                  this.$set(item, property, e.target.value);
+                });
+              }
+            });
+          });
+        },
+        cargarCuadernillos() {
+          $.ajax({
+            url: '{% url 'gestion:cuadernillos_por_expediente' expediente.id %}',
+            method: 'GET',
+            success: (res) => {
+              this.cuadernillos = res;
+            },
+            error: (err) => {
+              console.error('Error al cargar:', err);
+              alert('No se pudieron cargar los cuadernillos.');
+            }
+          });
+        },
+        agregarFilaCuadernillo() {
+            this.cuadernillos.push({
+              id: null,
+              tipo: '',
+              tipo_cuadernillo: '',
+              rango_inicial: '',
+              rango_final: '',
+              expediente: this.expedienteId,
+              organo_jurisdiccional: this.organoJurisdiccionalId
+            });
+            //this.$nextTick(this.initSelect2);
+            
+          this.$nextTick(() => {
+            this.initSelectForList(
+                this.cuadernillos,
+                'selectTipo',
+                'tipo_cuadernillo',
+                { placeholder: 'Seleccione tipo' }
+              );
+          });
+        },
+        guardarCuadernillo(item) {
+            const isEdit = !!item.id;
+            const url = isEdit
+                ? `/gestion/cuadernillo/update/${item.id}/`
+                : `/gestion/cuadernillo/create/`;
+            const method = isEdit ? 'PUT' : 'POST';
+
+            $.ajax({
+              url: url,
+              method: method,
+              contentType: 'application/json',
+              headers: {
+                'X-CSRFToken': getCSRFToken()
+              },
+              data: JSON.stringify({
+                expediente: this.expedienteId,
+                //organo_jurisdiccional: this.organoJurisdiccionalId,
+                tipo: item.tipo,
+                //tipo_cuadernillo: item.tipo_cuadernillo,
+                rango_inicial: item.rango_inicial,
+                rango_final: item.rango_final
+              }),
+              success: () => {
+                alert('Guardado correctamente');
+                this.cargarCuadernillos();
+              },
+              error: (err) => {
+                console.error('Error al guardar:', err);
+                alert('Error al guardar cuadernillo');
+              }
+            });
+        },
+        guardarCuadernillos() {
+            const nuevosCuadernillos = this.cuadernillos.filter(item => !item.id);
+            
+            if (nuevosCuadernillos.length === 0) {
+              alert('No hay nuevos cuadernillos para guardar');
+              return;
+            }
+
+            let guardados = 0;
+            const total = nuevosCuadernillos.length;
+
+            nuevosCuadernillos.forEach(item => {
+              $.ajax({
+                url: '/gestion/cuadernillo/create/',
+                method: 'POST', // Asumo que es POST para creación
+                contentType: 'application/json',
+                headers: {
+                  'X-CSRFToken': getCSRFToken()
+                },
+                data: JSON.stringify({
+                  expediente: this.expedienteId,
+                  //organo_jurisdiccional: this.organoJurisdiccionalId,
+                  tipo : item.tipo,
+                  //tipo_cuadernillo: item.tipo,
+                  rango_inicial: item.rango_inicial,
+                  rango_final: item.rango_final
+                  // No incluimos ID porque son nuevos registros
+                }),
+                success: () => {
+                  guardados++;
+                  if (guardados === total) {
+                    alert(`Se guardaron ${guardados} nuevos cuadernillos`);
+                    this.cargarCuadernillos(); // Recargar solo cuando todos terminen
+                  }
+                },
+                error: (err) => {
+                  console.error('Error al guardar cuadernillo:', err);
+                  // Aún incrementamos el contador para no bloquear
+                  guardados++;
+                  if (guardados === total) {
+                    alert(`Se completó el proceso con algunos errores`);
+                    this.cargarCuadernillos();
+                  }
+                }
+              });
+            });
+        },
+        eliminarCuadernillo(cuadernillo, index) {
+          if (!cuadernillo.id) {
+            this.cuadernillos.splice(index, 1);
+            return;
+          }
+          if (!cuadernillo.id || !confirm('¿Eliminar este cuadernillo?')) return;
+          $.ajax({
+              url: `/gestion/cuadernillo/delete/${cuadernillo.id}/`,
+              method: 'DELETE',
+              headers: {
+                'X-CSRFToken': getCSRFToken()
+              },
+              success: () => {
+                alert('Eliminado correctamente');
+                this.cargarCuadernillos();
+              },
+              error: (err) => {
+                console.error('Error al eliminar:', err);
+                alert('No se pudo eliminar el cuadernillo');
+              }
+            });
+        },
+        cargarAcumulados() {
+          $.ajax({
+            url: '{% url 'gestion:acumulados_por_expediente' expediente.id %}',
+            method: 'GET',
+            success: (res) => {
+              this.acumulados = res;
+              //console.log(res.data);
+            },
+            error: (err) => {
+              console.error('Error al cargar:', err);
+              alert('No se pudieron cargar los acumulados.');
+            }
+          });
+          this.$nextTick(this.initSelect2);
+          this.initSelectForList(
+            this.acumulados,
+            'selectOrganoJurisdiccional',
+            'organo_jurisdiccional',
+            { placeholder: 'Seleccione órgano' }
+          );
+        },
+        agregarFilaAcumulado() {
+            this.acumulados.push({
+              id: null,
+              numero_expediente: '',
+              rango_inicial: '',
+              rango_final: '',
+              expediente: this.expedienteId,
+              organo_jurisdiccional: ''
+            });
+            //this.$nextTick(this.initSelect2);
+            //this.cargarOrganosJurisdiccionales();
+            
+          this.$nextTick(() => {
+            this.initSelectForList(
+              this.acumulados,
+              'selectOrganoJurisdiccional',
+              'organo_jurisdiccional',
+              { placeholder: 'Seleccione órgano' }
+            );
+          });
+
+        },
+        guardarAcumulado(item) {
+          const isEdit = !!item.id;
+          const url = isEdit
+            ? `/gestion/acumulado/update/${item.id}/`
+            : `/gestion/acumulado/create/`;
+          const method = isEdit ? 'PUT' : 'POST';
+          console.log("guardarAcumulado -->" + item.organo_jurisdiccional);
+          $.ajax({
+            url: url,
+            method: method,
+            contentType: 'application/json',
+            headers: {
+              'X-CSRFToken': getCSRFToken()
+            },
+            data: JSON.stringify({
+              expediente: this.expedienteId,
+              organo_jurisdiccional: item.organo_jurisdiccional,
+              numero_expediente: item.numero_expediente,
+              rango_inicial: item.rango_inicial,
+              rango_final: item.rango_final
+            }),
+            success: () => {
+              alert('Guardado correctamente');
+              this.cargarAcumulados();
+            },
+            error: (err) => {
+              console.error('Error al guardar:', err);
+              alert('Error al guardar acumulado');
+            }
+          });
+        },
+        guardarAcumulados() {
+          const nuevosAcumulados = this.acumulados.filter(item => !item.id);
+          
+          if (nuevosAcumulados.length === 0) {
+            alert('No hay nuevos acumulados para guardar');
+            return;
+          }
+
+          let guardados = 0;
+          const total = nuevosAcumulados.length;
+
+          nuevosAcumulados.forEach(item => {
+            $.ajax({
+              url: '/gestion/acumulado/create/',
+              method: 'POST',
+              contentType: 'application/json',
+              headers: {
+                'X-CSRFToken': getCSRFToken()
+              },
+              data: JSON.stringify({
+                expediente: this.expedienteId,
+                organo_jurisdiccional: item.organo_jurisdiccional,
+                numero_expediente: item.numero_expediente,
+                rango_inicial: item.rango_inicial,
+                rango_final: item.rango_final
+              }),
+              success: () => {
+                guardados++;
+                if (guardados === total) {
+                  alert(`Se guardaron ${guardados} nuevos acumulados`);
+                  this.cargarAcumulados();
+                }
+              },
+              error: (err) => {
+                console.error('Error al guardar acumulado:', err);
+                guardados++;
+                if (guardados === total) {
+                  alert(`Se completó el proceso con algunos errores`);
+                  this.cargarAcumulados();
+                }
+              }
+            });
+          });
+        }, 
+        eliminarAcumulado(acumulado, index) {
+          if (!acumulado.id) {
+            this.acumulados.splice(index, 1);
+            return;
+          }
+          if (!confirm('¿Eliminar este acumulado?')) return;
+          $.ajax({
+            url: `/gestion/acumulado/delete/${acumulado.id}/`,
+            method: 'DELETE',
+            headers: {
+              'X-CSRFToken': getCSRFToken()
+            },
+            success: () => {
+              alert('Eliminado correctamente');
+              this.cargarAcumulados();
+            },
+            error: (err) => {
+              console.error('Error al eliminar:', err);
+              alert('No se pudo eliminar el acumulado');
+            }
+          });
+        },
+        cargarAvocamientos() {
+          $.ajax({
+            url: '{% url 'gestion:avocamientos_por_expediente' expediente.id %}',
+            method: 'GET',
+            success: (res) => {
+              this.avocamientos = res;
+              //console.log(res.data);
+              
+              this.$nextTick(() => {
+                this.initSelectForList(
+                  this.avocamientos,
+                  'selectOrganoJurisdiccionalAvocamiento',
+                  'organo_jurisdiccional',
+                  { placeholder: 'Seleccione órgano' }
+                );
+              });
+            },
+            error: (err) => {
+              console.error('Error al cargar:', err);
+              alert('No se pudieron cargar los avocamientos.');
+            }
+          });
+        },
+
+        agregarFilaAvocamiento() {
+          this.avocamientos.push({
+            id: null,
+            numero_expediente: '',
+            rango_inicial: '',
+            rango_final: '',
+            expediente: this.expedienteId,
+            organo_jurisdiccional: this.organoJurisdiccionalId
+          });
+          
+          this.$nextTick(() => {
+            this.initSelectForList(
+              this.avocamientos,
+              'selectOrganoJurisdiccionalAvocamiento',
+              'organo_jurisdiccional',
+              { placeholder: 'Seleccione órgano' }
+            );
+          });
+        },
+
+        guardarAvocamiento(item) {
+          const isEdit = !!item.id;
+          const url = isEdit
+            ? `/gestion/avocamiento/update/${item.id}/`
+            : `/gestion/avocamiento/create/`;
+          const method = isEdit ? 'PUT' : 'POST';
+
+          $.ajax({
+            url: url,
+            method: method,
+            contentType: 'application/json',
+            headers: {
+              'X-CSRFToken': getCSRFToken()
+            },
+            data: JSON.stringify({
+              expediente: this.expedienteId,
+              organo_jurisdiccional: item.organo_jurisdiccional,
+              numero_expediente: item.numero_expediente,
+              rango_inicial: item.rango_inicial,
+              rango_final: item.rango_final
+            }),
+            success: () => {
+              alert('Avocamiento guardado correctamente');
+              this.cargarAvocamientos();
+            },
+            error: (err) => {
+              console.error('Error al guardar:', err);
+              alert('Error al guardar avocamiento');
+            }
+          });
+        },
+
+        guardarAvocamientos() {
+          const nuevosAvocamientos = this.avocamientos.filter(item => !item.id);
+          
+          if (nuevosAvocamientos.length === 0) {
+            alert('No hay nuevos avocamientos para guardar');
+            return;
+          }
+
+          let guardados = 0;
+          const total = nuevosAvocamientos.length;
+
+          nuevosAvocamientos.forEach(item => {
+            $.ajax({
+              url: '/gestion/avocamiento/create/',
+              method: 'POST',
+              contentType: 'application/json',
+              headers: {
+                'X-CSRFToken': getCSRFToken()
+              },
+              data: JSON.stringify({
+                expediente: this.expedienteId,
+                organo_jurisdiccional: item.organo_jurisdiccional,
+                numero_expediente: item.numero_expediente,
+                rango_inicial: item.rango_inicial,
+                rango_final: item.rango_final
+              }),
+              success: () => {
+                guardados++;
+                if (guardados === total) {
+                  alert(`Se guardaron ${guardados} nuevos avocamientos`);
+                  this.cargarAvocamientos();
+                }
+              },
+              error: (err) => {
+                console.error('Error al guardar avocamiento:', err);
+                guardados++;
+                if (guardados === total) {
+                  alert(`Se completó el proceso con algunos errores`);
+                  this.cargarAvocamientos();
+                }
+              }
+            });
+          });
+        },
+
+        eliminarAvocamiento(avocamiento, index) {
+          if (!avocamiento.id) {
+            this.avocamientos.splice(index, 1);
+            return;
+          }
+          if (!confirm('¿Eliminar este avocamiento?')) return;
+          $.ajax({
+            url: `/gestion/avocamiento/delete/${avocamiento.id}/`,
+            method: 'DELETE',
+            headers: {
+              'X-CSRFToken': getCSRFToken()
+            },
+            success: () => {
+              alert('Avocamiento eliminado correctamente');
+              this.cargarAvocamientos();
+            },
+            error: (err) => {
+              console.error('Error al eliminar:', err);
+              alert('No se pudo eliminar el avocamiento');
+            }
+          });
+        }
+      }
+    });
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+
+        
+
+
+      const flatpickrInstances = {};
+      const config = [
+        { trigger: 'id_concluido', target: 'flatpickr-fecha_concluido', wrapper: 'wrapper_fecha_concluido', isDate: true },
+        { trigger: 'id_acumulado', target: 'id_numero_acumulado', wrapper: 'wrapper_numero_acumulado' },
+      ];
+  
+      // Inicializa todos los flatpickr
+      document.querySelectorAll("input[id^='flatpickr-']").forEach(function (input) {
+        const instance = flatpickr(input, {
+          dateFormat: "Y-m-d",
+          monthSelectorType: "static",
+          static: true
+        });
+        flatpickrInstances[input.id] = instance;
+      });
+
+
+        const fileInput = document.querySelector('#documento_prestamo_id');
+    const numeroOficio = document.querySelector('#id_numero_oficio');
+    const oficioAtencion = document.querySelector('#id_oficio_atencion');
+    const dateInput = document.querySelector('#flatpickr-fecha_prestamo');
+
+    // Inicializar flatpickr
+    const flatpickrInstance = flatpickr(dateInput, { dateFormat: "Y-m-d" });
+
+    // Comprobar si ya existe un archivo desde Django
+    const hasFileFromDjango = {{ form.instance.documento_prestamo|yesno:"true,false" }};
+
+    function actualizarCampos() {
+        const enabled = fileInput.files.length > 0 || hasFileFromDjango;
+
+        // Habilitar/deshabilitar flatpickr
+        if (dateInput && flatpickrInstance) {
+            flatpickrInstance.set('disabled', !enabled);
+            dateInput.disabled = !enabled;
+        }
+
+        // Habilitar/deshabilitar otros campos
+        numeroOficio.disabled = !enabled;
+        oficioAtencion.disabled = !enabled;
+    }
+
+    // Ejecutar al cargar la página
+    actualizarCampos();
+
+    // Ejecutar cuando el usuario seleccione un archivo
+    fileInput.addEventListener('change', actualizarCampos);
+
+      
+      
+      // Activa lógica de switches
+      config.forEach(({ trigger, target, wrapper, isDate }) => {
+        const triggerEl = document.getElementById(trigger);
+        const targetEl = document.getElementById(target);
+        //const wrapperEl = document.getElementById(wrapper);
+        const flatpickrInstance = isDate ? flatpickrInstances[target] : null;
+  
+        function toggleTarget() {
+          const enabled = triggerEl.checked;
+
+          if (isDate && flatpickrInstance) {
+            flatpickrInstance.set('disabled', !enabled);
+            targetEl.disabled = !enabled;
+
+            // Hacer requerido si está habilitado
+            if (enabled) {
+              targetEl.setAttribute('required', '');
+            } else {
+              targetEl.removeAttribute('required');
+            }
+          }
+
+          if (targetEl && !isDate) {
+            targetEl.disabled = !enabled;
+
+            // Hacer requerido si está habilitado
+            if (enabled) {
+              targetEl.setAttribute('required', '');
+            } else {
+              targetEl.removeAttribute('required');
+            }
+          }
+
+          /*if (wrapperEl) {
+            wrapperEl.classList.toggle('d-none', !enabled);
+          }*/
+        }
+  
+        if (triggerEl && targetEl) {
+          toggleTarget(); // Estado inicial
+          triggerEl.addEventListener('change', toggleTarget);
+        }
+      });
+    });
+
+
+const wizardNumbered = document.querySelector('.wizard-numbered'),
+  wizardNumberedBtnNextList = [].slice.call(wizardNumbered.querySelectorAll('.btn-next')),
+  wizardNumberedBtnPrevList = [].slice.call(wizardNumbered.querySelectorAll('.btn-prev')),
+  wizardNumberedBtnSubmit = wizardNumbered.querySelector('.btn-submit');
+
+if (typeof wizardNumbered !== undefined && wizardNumbered !== null) {
+  const numberedStepper = new Stepper(wizardNumbered, {
+    linear: false
+  });
+  /*if (wizardNumberedBtnNextList) {
+    wizardNumberedBtnNextList.forEach(wizardNumberedBtnNext => {
+      wizardNumberedBtnNext.addEventListener('click', event => {
+        numberedStepper.next();
+      });
+    });
+  }
+  if (wizardNumberedBtnPrevList) {
+    wizardNumberedBtnPrevList.forEach(wizardNumberedBtnPrev => {
+      wizardNumberedBtnPrev.addEventListener('click', event => {
+        numberedStepper.previous();
+      });
+    });
+  }
+  if (wizardNumberedBtnSubmit) {
+    wizardNumberedBtnSubmit.addEventListener('click', event => {
+      alert('Submitted..!!');
+    });
+  }*/
+}
+
+
+const formElement = document.querySelector('#wizard-validation-form');
+
+const wizardValidation = document.querySelector('#wizard-validation');
+
+if (typeof wizardValidation !== undefined && wizardValidation !== null) {
+  // Wizard form
+  const wizardValidationForm = wizardValidation.querySelector('#wizard-validation-form');
+  // Wizard steps
+  const wizardValidationFormStep1 = wizardValidationForm.querySelector('#step1');
+  const wizardValidationFormStep2 = wizardValidationForm.querySelector('#step2');
+  const wizardValidationFormStep3 = wizardValidationForm.querySelector('#step3');
+  const wizardValidationFormStep4 = wizardValidationForm.querySelector('#step4');
+  // Wizard next prev button
+  const wizardValidationNext = [].slice.call(wizardValidationForm.querySelectorAll('.btn-next'));
+  const wizardValidationPrev = [].slice.call(wizardValidationForm.querySelectorAll('.btn-prev'));
+
+  let validationStepper = new Stepper(wizardValidation, {
+    linear: true
+  });
+
+  const FormValidation1 = FormValidation.formValidation(wizardValidationFormStep1, {
+    fields: {
+        instancia: {
+          validators: {
+            notEmpty: {
+              message: 'This is required'
+            }
+          }
+        }
+      
+    },
+    plugins: {
+      trigger: new FormValidation.plugins.Trigger(),
+      bootstrap5: new FormValidation.plugins.Bootstrap5({
+        eleValidClass: ''
+      }),
+      autoFocus: new FormValidation.plugins.AutoFocus(),
+      submitButton: new FormValidation.plugins.SubmitButton()
+    }
+  }).on('core.form.valid', function() {
+    validationStepper.next();
+  });
+
+  const FormValidation2 = FormValidation.formValidation(wizardValidationFormStep2, {
+    fields: {
+      expediente_toca: {
+        validators: {
+          notEmpty: {
+            message: 'Indica un número de expediente'
+          }
+        }
+      },
+      numero_tomo: {
+        validators: {
+          notEmpty: {
+            message: 'Indica un número de tomo'
+          },
+          remote: {
+                    message: 'Este expediente y tomo ya están registrados',
+                    method: 'POST',
+                    url: '{% url "gestion:api_validar_expediente_tomo" %}',
+                    data: function() {
+                        return {
+                            expediente_toca: wizardValidationFormStep2.querySelector('[name="expediente_toca"]').value,
+                            numero_tomo: wizardValidationFormStep2.querySelector('[name="numero_tomo"]').value,
+                            id_expediente: document.querySelector('[name="id_expediente"]').value
+                        };
+                    },
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                    },
+                    validate: function(input) {
+                        const expediente = wizardValidationFormStep2.querySelector('[name="expediente_toca"]').value.trim();
+                        if (expediente === '') {
+                            return {
+                                valid: true // Evita llamada AJAX si expediente está vacío
+                            };
+                        }
+                        return true;
+                    }
+                }
+          
+        }
+      }
+    },
+    plugins: {
+      trigger: new FormValidation.plugins.Trigger(),
+      bootstrap5: new FormValidation.plugins.Bootstrap5({
+        // Use this for enabling/changing valid/invalid class
+        // eleInvalidClass: '',
+        eleValidClass: ''
+      }),
+      autoFocus: new FormValidation.plugins.AutoFocus(),
+      submitButton: new FormValidation.plugins.SubmitButton()
+    }
+  }).on('core.form.valid', function() {
+    validationStepper.next();
+  });
+
+  const FormValidation3 = FormValidation.formValidation(wizardValidationFormStep3, {
+    fields: {
+      juicio_delito: {
+        validators: {
+          notEmpty: {
+            message: 'Indica tipo de juicio'
+          }
+        }
+      },
+      actor: {
+        validators: {
+          notEmpty: {
+            message: 'Indica a un actor'
+          }
+        }
+      },
+      juez: {
+        validators: {
+          notEmpty: {
+            message: 'Indica un juez'
+          }
+        }
+      },
+    },
+    plugins: {
+      trigger: new FormValidation.plugins.Trigger(),
+      bootstrap5: new FormValidation.plugins.Bootstrap5({
+        // Use this for enabling/changing valid/invalid class
+        // eleInvalidClass: '',
+        eleValidClass: ''
+      }),
+      autoFocus: new FormValidation.plugins.AutoFocus(),
+      submitButton: new FormValidation.plugins.SubmitButton()
+    }
+  }).on('core.form.valid', function() {
+    validationStepper.next();
+  });
+
+  const FormValidation4 = FormValidation.formValidation(wizardValidationFormStep4, {
+    fields: {
+       //medida_centimetros
+       medida_centimetros: {
+        validators: {
+          notEmpty: {
+            message: 'Indica medida en centímetros del expediente'
+          }
+        }
+      }
+    },
+    plugins: {
+      trigger: new FormValidation.plugins.Trigger(),
+      bootstrap5: new FormValidation.plugins.Bootstrap5({
+        // Use this for enabling/changing valid/invalid class
+        // eleInvalidClass: '',
+        eleValidClass: ''
+      }),
+      autoFocus: new FormValidation.plugins.AutoFocus(),
+      submitButton: new FormValidation.plugins.SubmitButton()
+    }
+  }).on('core.form.valid', function() {
+
+    const formElement = document.querySelector("#wizard-validation-form");
+    const formData = new FormData(formElement);
+    //const result = Object.fromEntries(data.entries());
+    for (const [key, value] of formData.entries()) {
+        console.log(key, value);
+      }
+    wizardValidationForm.submit();
+  });
+
+  wizardValidationNext.forEach(item => {
+    item.addEventListener('click', event => {
+      switch (validationStepper._currentIndex) {
+        case 0:
+          FormValidation1.validate();
+          break;
+
+        case 1:
+          FormValidation2.validate();
+          break;
+
+        case 2:
+          FormValidation3.validate();
+          //console.log(2);
+          break;
+
+        case 3:
+          FormValidation4.validate();
+          break;
+
+        default:
+          break;
+      }
+    });
+  });
+
+  wizardValidationPrev.forEach(item => {
+    item.addEventListener('click', event => {
+      switch (validationStepper._currentIndex) {
+        case 3:
+          validationStepper.previous();
+          break;
+        case 2:
+          validationStepper.previous();
+          break;
+        case 1:
+          validationStepper.previous();
+          break;
+        case 0:
+        default:
+          break;
+      }
+    });
+  });
+}
+  </script>
+  
+
+{% endblock %}

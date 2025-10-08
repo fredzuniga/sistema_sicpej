@@ -1,0 +1,65 @@
+{% extends 'sicpej/base.html' %}
+
+{% block title %}Lista de regiones judiciales{% endblock %}
+
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <div class="row">
+            <div class="col-md-10">
+                <h5>Lista de regiones judiciales</h5>
+            </div>
+            <div class="col-md-2 text-right">
+                <a href="{% url 'administracion:nueva_region' %}" class="btn btn-primary mt-4">
+                    <i class="fas fa-plus"></i> Nueva región judicial
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive text-nowrap">
+            <table class="table table-striped table-hover">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Estatus</th>
+                        <th>Archivo regional</th>
+                        <th>Fecha registro</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for region in regiones %}
+                    <tr>
+                        <td>{{ region.nombre }}</td>
+                        <td>
+                            {% if region.estatus == 1 %}
+                                <span class="badge rounded-pill bg-label-primary me-1">{{ region.get_estatus_display }}</span>
+                            {% else %}
+                                <span class="badge rounded-pill bg-label-dark me-1">Inactivo</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ region.archivo_regional.nombre|default:"-" }}</td>    
+                        <td>{{ region.fecha_creacion|date:"d/m/Y" }}</td>
+                        <td>
+                            <div class="btn-group">
+                                
+                                <a href="{% url 'administracion:editar_region' region.pk %}" 
+                                   class="btn btn-sm btn-primary" title="Editar">
+                                    <i class="fas fa-edit"></i> Editar
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center">No hay regiones judiciales registrados</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

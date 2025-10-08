@@ -1,0 +1,112 @@
+{% extends 'sicpej/base.html' %}
+
+{% block content %}
+{% if messages %}
+  {% for message in messages %}
+    {% if message.tags == 'warning' %}
+      <div class="alert alert-solid-warning d-flex align-items-center flex-wrap row-gap-2" role="alert">
+        <span class="alert-icon rounded">
+          <i class="icon-base ri ri-alert-line icon-md"></i>
+        </span>
+        {{ message }}
+      </div>
+    {% endif %}
+  {% endfor %}
+{% endif %}
+
+<div class="col-md-6 offset-md-3">
+    <div class="card">
+        <div class="card-header">
+            <div class="row">
+                <div class="col-md-12">
+                    <h5 class="card-title">Seleccionar organo jurisdiccional</h5>
+
+                    <hr>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            {% if juzgado_actual %}
+            <p class="text-form">
+                <b>Organo jurisdiccional seleccionado actualmente: </b>{{ juzgado_actual.nombre }}
+            </p>
+            {% endif %}
+            {% if user.is_authenticated %}
+                {% if user.is_superuser %}
+                    <p class="text-form">Seleccione el organo jurisdiccional del archivo <strong>{{ archivo.nombre }}</strong>:</p>
+                {% else %}
+                    <p class="text-form">Archivo regional actual <strong>{{ archivo.nombre }}</strong></p>
+                {% endif %}
+            {% else %}
+                <p class="text-form">Archivo regional actual <strong>{{ archivo.nombre }}</strong></p>
+            {% endif %}
+            
+            <form method="post">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="juzgado" class="mb-5">Materia:</label>
+                    <br>
+                    <select name="id_materia" id="id_materia" class="form-control select2 mb-5" required>
+                        <option value="">-- Seleccione una materia --</option>
+                        {% for materia in materias %}
+                            <option value="{{ materia.pk }}">{{ materia.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <hr>
+                <div class="form-group mt-5">
+                    <label for="organo_jurisdiccional" class="mb-5">Organos jurisdiccionales disponibles:</label>
+                    <br>
+                    <select name="organo_jurisdiccional" id="organo_jurisdiccional" class="form-control select2 mb-5" required>
+                        <option value="">-- Seleccione un organo jurisdiccional --</option>   
+                    </select>
+                </div>
+    
+                <div class="row justify-content-end mt-5">
+                    <div class="col-sm-12 d-flex justify-content-end">
+                        <button type="submit" class="btn btn-primary waves-effect waves-light me-2">Seleccionar</button>
+                        <a href="javascript:history.back()" class="btn btn-secondary">Regresar</a>
+                    </div>
+                </div>
+                
+            </form>
+            
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block javascript %}
+<script>
+$(document).ready(function() {
+  $('#id_materia').on('change', function() {
+    var materiaId = $(this).val();
+    var url = '{% url "gestion:api_organos_jurisdiccionales_por_materia" %}';
+
+    $('#organo_jurisdiccional').empty().trigger('change');
+
+    if (!materiaId) {
+      return;
+    }
+
+    $.ajax({
+      url: url,
+      data: { materia: materiaId },
+      dataType: 'json',
+      success: function(data) {
+        console.log(data);
+        $('#organo_jurisdiccional').select2({
+          data: data.results,
+          placeholder: 'Selecciona un organo jurisdiccional',
+          allowClear: true
+        });
+      },
+      error: function(xhr) {
+        console.error('Error al cargar el organo jurisdiccional:', xhr);
+      }
+    });
+  });
+});
+</script>
+{% endblock %}

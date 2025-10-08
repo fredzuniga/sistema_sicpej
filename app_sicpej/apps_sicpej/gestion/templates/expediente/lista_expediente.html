@@ -1,0 +1,266 @@
+{% extends 'sicpej/base.html' %}
+
+{% block title %}Listado de Expedientes: {{ organo_jurisdiccional.nombre }}, {{ organo_jurisdiccional.municipio.descripcion }}{% endblock %}
+
+{% block content %}
+{% include "paquete/paquete_breadcrumb.html" %}
+
+{% include "html/alert.html" %}
+
+<div id="app-expedientes">
+
+<form method="POST" id="formMoverExpedientesPaquete" action="{% url 'gestion:mover_expedientes_paquete' %}">
+{% csrf_token %}
+<div class="card">
+    <div class="card-header d-flex align-items-center justify-content-between">
+        <h5 class="card-title">Listado de expedientes</h5>
+        <span style="font-size: 1.15em;">
+            <b>Órgano jurisdiccional:</b> [[ organoTexto ]]
+            <br> <b>Archivo regional:</b> [[ archivoNombre ]]
+        </span>
+    </div>
+    <div class="card-body">
+        <div>
+            <div class="row mb-2">
+                <label for="organo-select" class="col-sm-3 col-form-label">Filtrar por órgano Jurisdiccional:</label>
+            
+                <div class="col-sm-5">
+                    <select id="organo-select" name="organo_id" class="form-control select2">
+                        <option value="">-- Selecciona un órgano --</option>
+                        {% for org in organos_disponibles %}
+                        <option value="{{ org.id }}">
+                            {{ org.nombre }} ({{ org.municipio.descripcion }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            {% include "expediente/filtros/filtro_lista_expedientes.html" %}
+            <div class="table-responsive text-nowrap">
+                <div v-html="tabla"></div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{% include "paquete/modals/modal_mover_expediente.html" %}
+
+</form>
+</div>
+{% endblock %}
+
+{% block javascript %}
+
+<script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+<script>
+    new Vue({
+      el: '#app-expedientes',
+      delimiters: ['[[', ']]'],
+      data: {
+        tabla: '',
+        search: '{{ search }}',
+        per_page: '{{ per_page }}',
+        per_page_options: {{ per_page_options|safe }},
+        filtros: [],
+        camposDisponibles: {{ filtros_disponibles|safe }},
+        modalData: {},
+        organoNombre: '',
+        organoMunicipio: '',
+        organoTexto: '',
+        archivoNombre: '{{ archivo_actual.nombre }}',
+      },
+      mounted() {
+        this.buscar();
+        this.initSelect2();
+        this.initFlatpickr();
+      },
+      methods: {
+        confirmarMovimientoExpedientePaquete() {
+          // Obtener expedientes seleccionados
+          const checkboxes = document.querySelectorAll('input[name="expediente"]:checked');
+          const seleccionados = Array.from(checkboxes).map(cb => cb.value);
+          const paquete = document.getElementById('paquete_destino_id').value;
+          if (seleccionados.length === 0) {
+            alert("Debe seleccionar al menos un expediente.");
+            return;
+          }
+          if (!paquete) {
+            alert("Debe seleccionar un paquete de destino.");
+            return;
+          }
+          const modal = bootstrap.Modal.getInstance(document.getElementById('modalMoverExpediente'));
+          if (modal) modal.hide();
+          document.getElementById('formMoverExpedientesPaquete').submit();
+        },agregarFiltro() {
+            this.filtros.push({
+                campo: '',
+                tipo: '',
+                valor: '',
+                valor_fin: '',
+                activo: true,
+                rango: false
+            });
+
+            this.$nextTick(() => {
+                this.initSelect2Filtro();
+            });
+
+        },
+        eliminarFiltro(index) {
+          this.filtros.splice(index, 1);
+        },
+        initSelect2Filtro() {
+            /*const selector = `#campo-select-${index}`;
+            if ($(selector).length) {
+                $(selector).select2();
+            }*/
+            /*this.$nextTick(() => {
+                $('.filtro-select').each(function () {
+                    $(this).select2({
+                        width: '100%'
+                    });
+                });
+            });*/
+        },
+        buscar(page = 1) {
+            const filtrosAplicados = this.filtros
+                .filter(f => f.activo && f.campo)
+                .map(f => ({
+                    campo: f.campo,
+                    tipo: f.tipo,
+                    valor: f.valor,
+                    valor_fin: f.rango ? f.valor_fin : null,
+                    rango: f.rango
+                }));
+
+            let organo_id = document.getElementById('organo-select').value;
+
+            let params = {
+                organo_id: organo_id,
+                search: this.search,
+                fecha_inicio: this.fecha_inicio,
+                fecha_fin: this.fecha_fin,
+                per_page: this.per_page,
+                page: page,
+                filtros: filtrosAplicados
+            };
+            console.log(params);
+            axios.get(window.location.pathname, {
+                params,
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            }).then(res => {
+                this.tabla = res.data.tabla || '<div class="alert alert-warning">No se encontraron resultados.</div>';
+                this.organoNombre = res.data.organo_nombre || '';
+                this.organoMunicipio = res.data.organo_municipio || '';
+                this.archivoNombre = res.data.archivo_nombre || '';
+                this.organoTexto = `${res.data.organo_nombre || ''}, ${res.data.organo_municipio || ''}`;
+                this.bindPaginationEvents();
+            });
+        },bindPaginationEvents() {
+          this.$nextTick(() => {
+            document.querySelectorAll('.pagination a').forEach(link => {
+              link.addEventListener('click', e => {
+                e.preventDefault();
+                const url = new URL(link.href);
+                const page = url.searchParams.get('page') || 1;
+                this.buscar(page);
+              });
+            });
+    
+            document.querySelectorAll('[data-expediente]').forEach(btn => {
+              btn.addEventListener('click', () => {
+                const scriptId = btn.getAttribute('data-expediente');
+                const data = JSON.parse(document.getElementById(scriptId).textContent);
+                this.modalData = data;
+                new bootstrap.Modal(document.getElementById('modalPreview')).show();
+              });
+            });
+          });
+        },
+        limpiarFiltros() {
+          this.search = '';
+          this.per_page = 10;
+          this.fecha_inicio = '';
+          this.fecha_fin = '';
+          this.filtros = [];
+          this.buscar();
+        },
+        initSelect2() {
+          const vm = this;
+          $(this.$refs.perPageSelect).select2();
+          $(this.$refs.perPageSelect).val(this.per_page).trigger('change');
+    
+          $(this.$refs.perPageSelect).on('change', function () {
+            vm.per_page = parseInt(this.value);
+          });
+        },
+        initFlatpickr() {
+          flatpickr("#flatpickr-begin", {
+            dateFormat: "Y-m-d",
+            defaultDate: this.fecha_inicio || null,
+            onChange: (selectedDates, dateStr) => {
+              this.fecha_inicio = dateStr;
+            }
+          });
+          flatpickr("#flatpickr-end", {
+            dateFormat: "Y-m-d",
+            defaultDate: this.fecha_fin || null,
+            onChange: (selectedDates, dateStr) => {
+              this.fecha_fin = dateStr;
+            }
+          });
+        },
+        onChangeCampo(index) {
+            const campo = this.filtros[index].campo;
+            // ✅ 1️⃣ Verificación de duplicados
+            const duplicado = this.filtros.some((f, i) => i !== index && f.campo === campo && campo !== '');
+            if (duplicado) {
+                alert(`El campo "${campo}" ya existe en otro filtro.`);
+                this.filtros[index].campo = '';
+                return;
+            }
+    
+            const config = this.camposDisponibles.find(c => c.name === campo);
+            this.$set(this.filtros[index], 'tipo', config.type);
+            this.$set(this.filtros[index], 'valor', '');
+            this.$set(this.filtros[index], 'valor_fin', '');
+            this.$nextTick(() => {
+                if (config.type === 'date') {
+                    this.initFlatpickrFiltro(index);
+                }
+            });
+            this.$nextTick(() => {
+                this.initSelect2Filtro();
+            });
+        },initFlatpickrFiltro(index) {
+            this.$nextTick(() => {
+                const fechaInicio = document.getElementById(`filtro-fecha-${index}`);
+                if (fechaInicio) {
+                    flatpickr(fechaInicio, {
+                        dateFormat: "Y-m-d",
+                        onChange: (selectedDates, dateStr) => {
+                        this.filtros[index].valor = dateStr;
+                        }
+                    });
+                }
+
+                const fechaFin = document.getElementById(`filtro-fecha-fin-${index}`);
+                if (fechaFin) {
+                    flatpickr(fechaFin, {
+                        dateFormat: "Y-m-d",
+                        onChange: (selectedDates, dateStr) => {
+                        this.filtros[index].valor_fin = dateStr;
+                        }
+                    });
+                }
+            });
+        }
+      }
+    });
+</script>
+
+{% endblock %}

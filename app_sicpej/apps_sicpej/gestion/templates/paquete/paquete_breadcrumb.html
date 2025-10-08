@@ -1,0 +1,46 @@
+{% if user.is_authenticated %}
+    {% if user.is_superuser %}
+        <nav aria-label="breadcrumb" class="pb-1">
+            <ol class="breadcrumb" style="margin-bottom:3px;">
+                <li class="breadcrumb-item">
+                    <b>Archivo regional actual:</b>
+                    <span>{{ archivo_actual.nombre }}</span>
+                </li>
+                <li class="breadcrumb-item">
+                    <b>Órgano jurisdiccional actual:</b> 
+                    <span>{{ organo_jurisdiccional_actual.nombre }}, {{ organo_jurisdiccional_actual.municipio.descripcion }}</span>
+                </li>
+            </ol>
+            <a href="{% url 'gestion:seleccion_archivo' %}" class="btn btn-primary waves-effect waves-light me-2 mt-3" style="color:#FFF">Cambiar archivo regional</a>
+
+            <a href="{% url 'gestion:seleccion_organo_jurisdiccional' archivo_actual.pk %}" class="btn btn-primary waves-effect waves-light me-2 mt-3" style="color:#FFF">Cambiar organo jurisdiccional</a>
+
+            <a href="{% url 'gestion:cambiar_seleccion' %}" class="btn btn-secondary waves-effect waves-light mt-3" style="color: #fff !important;">Borrar captura</a>
+
+        </nav>
+    {% else %}
+        {% if not user.configuracion.es_usuario_consulta %}
+        <nav aria-label="breadcrumb" class="mb-5 pb-1">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <b>Archivo regional actual:</b>
+                    <span>{{ archivo_actual.nombre }}</span>
+                </li>
+                {% if not user.configuracion.es_capturista_regional %}
+                <li class="breadcrumb-item">
+                    <b>Organo jurisdiccional actual:</b> 
+                    
+                    <span >{{ organo_jurisdiccional_actual.nombre }}, {{ organo_jurisdiccional_actual.municipio.descripcion }}</span>    
+                </li>
+                {% endif %}
+            </ol>
+
+            {% if not user.configuracion.es_capturista_regional %}
+                <a href="{% url 'gestion:seleccion_organo_jurisdiccional' archivo_actual.pk %}" class="btn btn-primary waves-effect waves-light me-2 mt-3" style="color:#FFF">Cambiar organo jurisdiccional</a>
+            {% endif %}
+
+        </nav>
+        {% endif %}
+    {% endif %}
+{% endif %}
+<hr class="mb-5">

@@ -1,0 +1,86 @@
+{% extends 'sicpej/base.html' %}
+
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <div class="row">
+            <div class="col-md-10">
+                <h5>{{ titulo }}</h5>
+            </div>
+            <div class="col-md-2 text-end">
+                <!-- Opcional: Botón oculto o futuro -->
+            </div>
+        </div>
+    </div>
+
+    <div class="card-body">
+        {% include "paquete/filtros/filtro_lista_paquetes.html" %}
+
+        <div class="table-responsive text-nowrap">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Paquete</th>
+                        <th>Perfil</th>
+                        <th>Estatus paquete</th>
+                        <th>Fecha asignación</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for asignacion in asignaciones %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ asignacion.paquete.clave_paquete }} - {{ asignacion.paquete.organo_jurisdiccional }} </td>
+                        <td>{{ asignacion.usuario_perfil.perfil.nombre }}</td>
+                        <td>
+                            {{ asignacion.paquete.get_estatus_display }}
+                        </td>
+                        <td>{{ asignacion.fecha_creacion|date:"d/m/Y H:i" }}</td>
+                        <td>
+                            <a href="{% url 'gestion:ver_paquete' asignacion.paquete.pk %}" 
+                                class="btn btn-primary" title="Editar">
+                                Editar
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="9" class="text-center">No tienes paquetes asignados.</td>
+                    </tr>
+                    
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {% if is_paginated %}
+    <div class="card-footer">
+        <div class="row">
+            <div class="col-md-12 m-5">
+                {% include 'sicpej/partials/paginacion.html' %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}
+
+{% block javascript %}
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    // Buscar todos los inputs cuyo ID comience con "flatpickr-"
+    document.querySelectorAll("input[id^='flatpickr-']").forEach(function (input) {
+      flatpickr(input, {
+        monthSelectorType: "static",
+        static: true
+      });
+    });
+  });
+</script>
+{% endblock %}

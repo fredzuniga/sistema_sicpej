@@ -1,0 +1,49 @@
+{% extends 'sicpej/base.html' %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <div class="row">
+            <div class="col-md-10">
+                <h5>Lista de tipos de juicios</h5>
+            </div>
+            <div class="col-md-2 text-right">
+                <a href="{% url 'administracion:nuevo_tipo_juicio' %}" class="btn btn-primary">Nuevo Juicio</a>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        
+        <div class="table-responsive text-nowrap">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Nombre tipo juicio</th>
+                        <th>Materia</th>
+                        <th>Estatus</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for juicio in tipos_juicio %}
+                    <tr>
+                        <td>{{ juicio.nombre }}</td>
+                        <td>{{ juicio.materia }}</td>
+                        <td>
+                            {% if juicio.estatus == 1 %}
+                                <span class="badge rounded-pill bg-label-primary me-1">{{ juicio.get_estatus_display }}</span>
+                            {% else %}
+                                <span class="badge rounded-pill bg-label-dark me-1">Inactivo</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'administracion:editar_tipo_juicio' juicio.pk %}" class="btn btn-primary waves-effect waves-light">Editar</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

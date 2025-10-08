@@ -1,0 +1,399 @@
+{% extends 'sicpej/base.html' %}
+
+{% block title %}Detalle del Paquete: 
+    #{{ paquete.clave_paquete|default_if_none:paquete.numero_paquete }}
+ - {{ paquete.organo_jurisdiccional.nombre }}, {{ paquete.organo_jurisdiccional.municipio.descripcion }}
+{% endblock %}
+
+{% block content %}
+{% include "paquete/paquete_breadcrumb.html" %}
+
+{% include "html/alert.html" %}
+
+<div class="card card-primary card-outline">
+    <div class="card-header">
+        <div class="row">
+            <div class="col-md-5">
+                <h4 class="card-title"><b>Detalle del paquete: #{{ paquete.clave_paquete|default_if_none:paquete.numero_paquete }}
+                </b></h4>
+            </div>
+            <div class="col-md-7 text-right">
+                {% if not user.configuracion.es_usuario_consulta %} 
+                    {% if paquete.estatus != 3%}
+                        <button type="submit" class="btn btn-primary waves-effect waves-light" id="btnModalCierrePaquete">Finalizar captura</button>
+                        {% include "paquete/modals/modal_confirm_cierre_paquete.html" %}
+                    {% endif %}
+                {% endif %}
+                
+                <a href="{% url 'gestion:generar_pdf_paquete' paquete.pk %}" class="btn btn-secondary" target="_blank">Generar reporte</a>
+                
+                {% if not user.configuracion.es_usuario_consulta %}
+                    {% if paquete.estatus != 3%}
+                        {% include "paquete/modals/modal_confirm_expediente.html" %}
+                        <button type="submit" class="btn btn-primary waves-effect waves-light" id="btnModalNuevoExpediente">Nuevo expediente</button>
+                    {% endif %}
+                {% endif %}
+                
+                <a href="{% url 'gestion:lista_paquetes' %}  " class="btn btn-secondary me-2">Regresar</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <dl class="row">
+                
+                    <dt class="col-sm-4">Organo jurisdiccional:</dt>
+                    <dd class="col-sm-8">{{ paquete.organo_jurisdiccional.nombre }}, {{ paquete.organo_jurisdiccional.municipio.descripcion }}</dd> 
+
+                    <dt class="col-sm-4">Archivo regional:</dt>
+                    <dd class="col-sm-8">{{ paquete.archivo_regional.nombre }}</dd>
+                    
+                    <dt class="col-sm-4">Estado:</dt>
+                    <dd class="col-sm-8">
+                        <span class="badge 
+                            {% if paquete.estatus == 1 %}bg-info
+                            {% elif paquete.estatus == 2 %}bg-warning
+                            {% else %}bg-success
+                            {% endif %}">
+                            {{ paquete.get_estatus_display }}
+                        </span>
+                    </dd>
+                </dl>
+            </div>
+            <div class="col-md-6">
+                <dl class="row">
+                    <dt class="col-sm-4">Fecha Registro:</dt>
+                    <dd class="col-sm-8">{{ paquete.fecha_registro|date:"d/m/Y H:i" }}</dd>
+                    
+                    <dt class="col-sm-4">Cantidad de expedientes:</dt>
+                    <dd class="col-sm-8">{{ paquete.expedientes.count }}</dd>
+                </dl>
+            </div>
+        </div>
+        
+        <div class="row mt-3 mb-5" style="">
+            <div class="col-md-6 mb-4">
+                <p>Descripción:</p>
+                <div class="border p-3 bg-label-secondary">
+                    {{ paquete.descripcion|default_if_none:"-" }}
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <p>Notas:</p>
+                <div class="border p-3 bg-label-secondary">
+                    {{ paquete.nota|default_if_none:"-" }}
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <p>Topografía:</p>
+                <div class="border p-3 bg-label-secondary">
+                    {{ paquete.topografia|default_if_none:'-' }}
+                </div>
+            </div>
+        </div>
+
+<form method="POST" id="formMoverExpedientesPaquete" action="{% url 'gestion:mover_expedientes_paquete' %}">
+{% csrf_token %}
+<input type="hidden" name="id_vista_redirect" value="2">
+<input type="hidden" name="id_paquete" value="{{ paquete.pk }}">
+
+{% include "paquete/modals/modal_mover_expediente.html" %}
+        <hr>
+        
+        <div class="row mt-5 mb-5">
+            <h5>Expedientes en este paquete</h5>
+        </div>
+        
+        <div id="app-expedientes">
+            {% include "expediente/filtros/filtro_lista_expedientes.html" %}
+            <div class="table-responsive text-nowrap">
+                <div v-html="tabla"></div>
+            </div>
+            
+            {% include "expediente/modals/expediente_detalle.html" %}
+            
+        </div>
+        
+    </div>
+    <div class="card-footer">
+    </div>
+
+</form>
+</div>
+{% endblock %}
+
+{% block javascript %}
+<script>
+
+function getCSRFToken() {
+    return document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Obtener elementos
+    var btnModalNuevoExpediente = document.getElementById('btnModalNuevoExpediente');
+    var confirmModalNuevoExpediente = new bootstrap.Modal(document.getElementById('confirmModalNuevoExpediente'));
+    var confirmSubmit = document.getElementById('confirmSubmit');
+    
+    // Mostrar modal al hacer clic en el botón de submit
+    btnModalNuevoExpediente.addEventListener('click', function(e) {
+        e.preventDefault();
+        confirmModalNuevoExpediente.show();
+    });
+    
+    confirmSubmit.addEventListener('click', function() {
+        var paqueteId = {{ paquete.id }};
+        window.location.href = '{% url 'gestion:nuevo_expediente_rapido' paquete.pk %}';
+    });
+
+    var confirmSubmitMoverExpedientesPaquete = document.getElementById('confirmSubmitMoverExpedientesPaquete');
+    confirmSubmitMoverExpedientesPaquete.addEventListener('click', function(e) {
+        const checkboxes = document.querySelectorAll('input[name="expediente"]:checked');
+        const seleccionados = Array.from(checkboxes).map(cb => cb.value);
+        const paquete = document.getElementById('paquete_destino_id').value;
+        if (seleccionados.length === 0) {
+            alert("Debe seleccionar al menos un expediente.");
+            return;
+        }
+        if (!paquete) {
+            alert("Debe seleccionar un paquete de destino.");
+            return;
+        }
+        const modal = bootstrap.Modal.getInstance(document.getElementById('modalMoverExpediente'));
+        if (modal) modal.hide();
+        document.getElementById('formMoverExpedientesPaquete').submit();
+    });
+
+    {% if paquete.estatus != 3 %}
+    var btnModalCierrePaquete = document.getElementById('btnModalCierrePaquete');
+    var confirmModalCierrePaquete = new bootstrap.Modal(document.getElementById('confirmModalCierrePaquete'));
+    var confirmSubmitCierre = document.getElementById('confirmSubmitCierre');
+
+    btnModalCierrePaquete.addEventListener('click', function(e) {
+        e.preventDefault();
+        confirmModalCierrePaquete.show();
+    });
+    
+    
+    confirmSubmitCierre.addEventListener('click', function() {
+        var paqueteId = {{ paquete.id }};
+        $.ajax({
+            url: '{% url 'gestion:cambiar_estatus_paquete' %}',
+            method: 'POST', // Asumo que es POST para creación
+            contentType: 'application/json',
+            headers: {
+                'X-CSRFToken': getCSRFToken()
+            },
+            data: JSON.stringify({
+                paquete_id: paqueteId
+            }),
+            success: () => {
+                window.location.href = window.location.href;
+            },
+            error: (err) => {
+                let mensaje = "Ocurrió un error al cambiar el estatus.";
+                if (xhr.responseJSON && xhr.responseJSON.detail) {
+                    mensaje = xhr.responseJSON.detail;
+                }
+                alert(mensaje);
+            }
+        });
+    });
+    {% endif %}
+
+});
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+<script>
+
+const csrfToken = getCSRFToken();
+axios.defaults.headers.common['X-CSRFToken'] = csrfToken;
+
+    new Vue({
+      el: '#app-expedientes',
+      delimiters: ['[[', ']]'],
+      data: {
+        paqueteId: '{{ paquete.id }}',
+        tabla: '',
+        search: '{{ search }}',
+        per_page: '{{ per_page }}',
+        per_page_options: {{ per_page_options|safe }},
+        filtros: [],
+        camposDisponibles: {{ filtros_disponibles|safe }},
+        modalData: {}
+      },
+      mounted() {
+        this.buscar();
+        this.initSelect2();
+        this.initFlatpickr();
+      },
+      methods: {
+        agregarFiltro() {
+            this.filtros.push({
+                campo: '',
+                tipo: '',
+                valor: '',
+                valor_fin: '',
+                activo: true,
+                rango: false
+            });
+
+            this.$nextTick(() => {
+                this.initSelect2Filtro();
+            });
+
+        },
+        eliminarFiltro(index) {
+          this.filtros.splice(index, 1);
+        },
+        initSelect2Filtro() {
+            /*const selector = `#campo-select-${index}`;
+            if ($(selector).length) {
+                $(selector).select2();
+            }*/
+            /*this.$nextTick(() => {
+                $('.filtro-select').each(function () {
+                    $(this).select2({
+                        width: '100%'
+                    });
+                });
+            });*/
+        },
+        buscar(page = 1) {
+            const filtrosAplicados = this.filtros
+                .filter(f => f.activo && f.campo)
+                    .map(f => ({
+                    campo: f.campo,
+                    tipo: f.tipo,
+                    valor: f.valor,
+                    valor_fin: f.rango ? f.valor_fin : null,
+                    rango: f.rango
+            }));
+
+            let params = {
+                search: this.search,
+                fecha_inicio: this.fecha_inicio,
+                fecha_fin: this.fecha_fin,
+                per_page: this.per_page,
+                page: page,
+                filtros: filtrosAplicados
+            };
+
+            axios.get(window.location.pathname, {
+                params,
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            }).then(res => {
+                this.tabla = res.data.tabla || '<div class="alert alert-warning">No se encontraron resultados.</div>';
+                this.bindPaginationEvents();
+            });
+        },bindPaginationEvents() {
+          this.$nextTick(() => {
+            document.querySelectorAll('.pagination a').forEach(link => {
+              link.addEventListener('click', e => {
+                e.preventDefault();
+                const url = new URL(link.href);
+                const page = url.searchParams.get('page') || 1;
+                this.buscar(page);
+              });
+            });
+    
+            document.querySelectorAll('.expediente-row').forEach(row => {
+                row.addEventListener('click', () => {
+                    const id = row.getAttribute('data-id');
+                    axios.post('{% url 'gestion:expediente-detalle-post' %}', { pk: id })
+                    .then(res => {
+                        this.modalData = res.data;
+                        console.log(this.modalData.clave_expediente);
+                        new bootstrap.Modal(document.getElementById('modalPreview')).show();
+                    })
+                    .catch(() => {
+                        alert('No se pudo cargar el detalle del expediente');
+                    });
+                });
+            });
+          });
+        },
+        limpiarFiltros() {
+          this.search = '';
+          this.per_page = 10;
+          this.fecha_inicio = '';
+          this.fecha_fin = '';
+          this.filtros = [];
+          this.buscar();
+        },
+        initSelect2() {
+          const vm = this;
+          $(this.$refs.perPageSelect).select2();
+          $(this.$refs.perPageSelect).val(this.per_page).trigger('change');
+    
+          $(this.$refs.perPageSelect).on('change', function () {
+            vm.per_page = parseInt(this.value);
+          });
+        },
+        initFlatpickr() {
+          flatpickr("#flatpickr-begin", {
+            dateFormat: "Y-m-d",
+            defaultDate: this.fecha_inicio || null,
+            onChange: (selectedDates, dateStr) => {
+              this.fecha_inicio = dateStr;
+            }
+          });
+          flatpickr("#flatpickr-end", {
+            dateFormat: "Y-m-d",
+            defaultDate: this.fecha_fin || null,
+            onChange: (selectedDates, dateStr) => {
+              this.fecha_fin = dateStr;
+            }
+          });
+        },
+        onChangeCampo(index) {
+            console.log(index);
+            const campo = this.filtros[index].campo;
+            const config = this.camposDisponibles.find(c => c.name === campo);
+            this.$set(this.filtros[index], 'tipo', config.type);
+            this.$set(this.filtros[index], 'valor', '');
+            this.$set(this.filtros[index], 'valor_fin', '');
+            this.$nextTick(() => {
+                if (config.type === 'date') {
+                    this.initFlatpickrFiltro(index);
+                }
+            });
+            this.$nextTick(() => {
+                this.initSelect2Filtro();
+            });
+        },initFlatpickrFiltro(index) {
+            this.$nextTick(() => {
+                const fechaInicio = document.getElementById(`filtro-fecha-${index}`);
+                if (fechaInicio) {
+                    flatpickr(fechaInicio, {
+                        dateFormat: "Y-m-d",
+                        onChange: (selectedDates, dateStr) => {
+                        this.filtros[index].valor = dateStr;
+                        }
+                    });
+                }
+
+                const fechaFin = document.getElementById(`filtro-fecha-fin-${index}`);
+                if (fechaFin) {
+                    flatpickr(fechaFin, {
+                        dateFormat: "Y-m-d",
+                        onChange: (selectedDates, dateStr) => {
+                        this.filtros[index].valor_fin = dateStr;
+                        }
+                    });
+                }
+            });
+        }
+      }
+    });
+</script>
+    
+
+{% endblock %}

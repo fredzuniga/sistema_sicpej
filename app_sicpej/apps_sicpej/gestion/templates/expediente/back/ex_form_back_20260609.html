@@ -1,0 +1,516 @@
+{% extends 'sicpej/base.html' %}
+{% load static %}
+
+{% block title %}Nuevo expediente: Paquete #{{ expediente.clave_expediente|default_if_none:expediente.numero }}
+ {% endblock %}
+
+{% block content %}
+
+<div class="col-md-12" id="app-expedientes">
+  
+  <div class="card">
+    <div class="card-header d-flex align-items-center justify-content-between">
+      <h5 class="mb-0">{{ titulo }}: Paquete #{{ paquete.clave_paquete|default_if_none:paquete.numero_paquete }} <br>
+          Expediente #{{ expediente.clave_expediente|default_if_none:expediente.numero }}
+      </h5>
+        <span style="font-size: 1.15em;">
+          <b>Juzgado:</b>{{ paquete.organo_jurisdiccional.nombre }}, {{ paquete.organo_jurisdiccional.municipio.descripcion }}
+          <br>
+          <b>Archivo regional:</b> {{ expediente.archivo_regional.nombre }}
+        </span>
+    </div>
+    <div class="card-body">
+        <div class="bs-stepper wizard-numbered mt-4" id="wizard-validation">
+          <div class="bs-stepper-header">
+            {% for etapa_nombre, fields in form.etapas %}
+              <div class="step" data-target="#step{{ forloop.counter }}">
+                <button type="button" class="step-trigger">
+                  <span class="bs-stepper-circle">
+                    <i class="icon-base ri ri-check-line"></i>
+                  </span>
+                  <span class="bs-stepper-label">
+                    {# Número con ceros: 01, 02, 03… #}
+                    <span class="bs-stepper-number">
+                      {{ forloop.counter|stringformat:"02d" }}
+                    </span>
+                    <span class="d-flex flex-column gap-1 ms-2">
+                      <span class="bs-stepper-title">{{ etapa_nombre }}</span>
+                      <span class="bs-stepper-subtitle">
+                        {{ etapa_nombre }}
+                      </span>
+                    </span>
+                  </span>
+                </button>
+              </div>
+
+              {% if not forloop.last %}
+                <div class="line"></div>
+              {% endif %}
+            {% endfor %}
+          </div>
+
+          <div class="bs-stepper-content">
+            <form method="post" id="wizard-validation-form">
+              {% csrf_token %}
+
+              {% for etapa_nombre, fields in form.etapas %}
+                <div id="step{{ forloop.counter }}" class="content">
+                  
+                  <div class="row g-5 mt-2">
+                    {% for field in fields %}
+
+                        {% if field.name in form.one_column_fields %}
+                          <div class="col-12 mb-5">
+                        {% elif field.name in form.two_column_fields %}
+                          <div class="col-md-6 mb-5">
+                        {% elif field.name in form.three_column_fields %}
+                          <div class="col-md-4 mb-5">
+                        {% elif field.name in form.four_column_fields %}
+                          <div class="col-md-3 mb-5">
+                        {% else %}
+                          <div class="col-12 mb-5">
+                        {% endif %}
+                          
+                          {% if field.name not in form.boolean_field_names %}
+                              <label for="{{ field.id_for_label }}" class="form-label" style="font-weight:800;">
+                                  {{ field.label }}
+                              </label>
+                          {% endif %}
+
+                          {% if field.name in form.date_field_names %}
+                            <div class="form-floating form-floating-outline">
+                              <input type="text"
+                                  class="form-control {% if field.errors %}is-invalid{% endif %}"
+                                  placeholder="YYYY-MM-DD"
+                                  id="flatpickr-{{ field.name }}"
+                                  name="{{ field.name }}"
+                                  value="{{ field.value|date:'Y-m-d' }}">
+                              <label for="flatpickr-{{ field.name }}">{{ field.label }}</label>
+                            </div>
+                    
+                          {% elif field.name in form.boolean_field_names %}
+                            
+                            <div class="form-check form-switch mt-2">
+                                  {% if field.name == 'acumulado' %}
+                                    <input type="checkbox" name="{{ field.name }}" id="{{ field.id_for_label }}"
+                                      class="form-check-input {% if field.errors %}is-invalid{% endif %}"
+                                      {% if field.value %}checked{% endif %} v-model="acumulado">
+                                      <p>¿Aceptado? [[ acumulado ]]</p>
+                                  {% else %}
+                                    <input type="checkbox" name="{{ field.name }}" id="{{ field.id_for_label }}"
+                                    class="form-check-input {% if field.errors %}is-invalid{% endif %}"
+                                    {% if field.value %}checked{% endif %}>
+                                  {% endif %}
+
+                                  <label class="form-check-label" for="{{ field.id_for_label }}">
+                                      {% if field.name == 'tomo' %}
+                                          ¿Qué tomo es?
+                                      {% elif field.name == 'acumulado' %}
+                                          ¿Es acumulado?
+                                      {% elif field.name == 'concluido' %}
+                                          ¿Concluido?
+                                      {% else %}
+                                          {{ field.label }}
+                                      {% endif %}
+                                  </label>
+
+                                  {% if field.name == 'acumulado' %}
+                                  <div v-if="acumulado">
+                                    <div v-for="(item, index) in items" :key="index" class="mb-2 row">
+                                      <div class="col-md-4">
+                                        <input
+                                          type="text"
+                                          v-model="item.tipo"
+                                          :name="`items[${index}][tipo]`"
+                                          class="form-control"
+                                          placeholder="Tipo"
+                                        >
+                                      </div>
+                                      <div class="col-md-4">
+                                        <input
+                                          type="text"
+                                          v-model="item.rango"
+                                          :name="`items[${index}][rango]`"
+                                          class="form-control"
+                                          placeholder="Rango"
+                                        >
+                                      </div>
+                                      <div class="col-md-2">
+                                        <button type="button" class="btn btn-danger" @click="removeItem(index)">Eliminar</button>
+                                      </div>
+                                    </div>
+
+                                    <button type="button" class="btn btn-primary mt-2" @click="addItem">Agregar campo</button>
+                                  </div>
+
+                                {% endif %}
+                            </div>
+                    
+                          {% elif field.name in "instancia materia tipo_juicio distrito_judicial municipio juzgado" %}
+                            <select name="{{ field.name }}" id="{{ field.id_for_label }}" class="form-select {% if field.errors %}is-invalid{% endif %} select2" required>
+                              {% for value, label in field.field.choices %}
+                                <option value="{{ value }}" {% if value == field.value %}selected{% endif %}>{{ label }}</option>
+                              {% endfor %}
+                            </select>
+                    
+                          {% else %}
+                            {{ field }}
+                          {% endif %}
+                    
+                          {% if field.help_text %}
+                            <div class="form-text">{{ field.help_text }}</div>
+                          {% endif %}
+                    
+                          {% for error in field.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                          {% endfor %}
+                        </div>
+
+                      
+
+                    {% endfor %}
+
+                    <div class="col-12 d-flex justify-content-between">
+                      {# Botón “Anterior” (deshabilitado en el primer paso) #}
+                      <button
+                        type="button"
+                        class="btn btn-outline-secondary btn-prev"
+                        {% if forloop.first %}disabled{% endif %}
+                      >
+                        <i class="icon-base ri ri-arrow-left-line icon-sm scaleX-n1-rtl me-sm-1 me-0"></i>
+                        <span class="align-middle d-sm-inline-block d-none">Anterior</span>
+                      </button>
+
+                      {% if not forloop.last %}
+                        {# Botón “Siguiente” #}
+                        <button type="button" class="btn btn-primary btn-next step-{{ forloop.counter }}" data-next="{{ forloop.counter }}">
+                          <span class="align-middle d-sm-inline-block d-none me-sm-1">Siguiente</span>
+                          <i class="icon-base ri ri-arrow-right-line icon-sm"></i>
+                        </button>
+                      {% else %}
+                        <div>
+                          <button type="button" class="btn btn-primary waves-effect waves-light me-2 btn-next">{{ accion }}</button>
+
+                          <a href="javascript:history.back()" class="btn btn-secondary">Cancelar</a>
+                        </div>
+                      {% endif %}
+                    </div>
+                  </div>
+
+
+                </div>
+              {% endfor %}
+
+            </form>
+          </div>
+
+        </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block javascript %}
+
+
+<link rel="stylesheet" href="{% static 'assets_sicpej/vendor/libs/@form-validation/form-validation.css' %}" />
+
+<!-- Vendors JS (en el footer preferentemente) -->
+<script src="{% static 'assets_sicpej/vendor/libs/@form-validation/popular.js' %}"></script>
+<script src="{% static 'assets_sicpej/vendor/libs/@form-validation/bootstrap5.js' %}"></script>
+<!-- AutoFocus plugin, automatically focus on the first invalid input -->
+<script src="{% static 'assets_sicpej/vendor/libs/@form-validation/auto-focus.js' %}"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+<script>
+    new Vue({
+      el: '#app-expedientes',
+      delimiters: ['[[', ']]'],
+      data: {
+        paqueteId: '{{ paquete.id }}',
+        items: [],
+        acumulado: false,
+        tabla: '',
+        search: '{{ search }}',
+        per_page: '{{ per_page }}',
+        filtros: [],
+        modalData: {}
+      },
+      mounted() {
+        
+      },
+      methods: {
+        addItem() {
+          this.items.push({ tipo: '', rango: '' });
+        },
+        removeItem(index) {
+          this.items.splice(index, 1);
+        },
+      }
+    });
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const flatpickrInstances = {};
+      const config = [
+        { trigger: 'id_tomo', target: 'id_numero_tomo', wrapper: 'wrapper_numero_tomo' },
+        { trigger: 'id_concluido', target: 'flatpickr-fecha_concluido', wrapper: 'wrapper_fecha_concluido', isDate: true },
+        { trigger: 'id_acumulado', target: 'id_numero_acumulado', wrapper: 'wrapper_numero_acumulado' },
+      ];
+  
+      // Inicializa todos los flatpickr
+      document.querySelectorAll("input[id^='flatpickr-']").forEach(function (input) {
+        const instance = flatpickr(input, {
+          dateFormat: "Y-m-d",
+          monthSelectorType: "static",
+          static: true
+        });
+        flatpickrInstances[input.id] = instance;
+      });
+  
+      // Activa lógica de switches
+      config.forEach(({ trigger, target, wrapper, isDate }) => {
+        const triggerEl = document.getElementById(trigger);
+        const targetEl = document.getElementById(target);
+        const wrapperEl = document.getElementById(wrapper);
+        const flatpickrInstance = isDate ? flatpickrInstances[target] : null;
+  
+        function toggleTarget() {
+          const enabled = triggerEl.checked;
+
+          if (isDate && flatpickrInstance) {
+            flatpickrInstance.set('disabled', !enabled);
+            targetEl.disabled = !enabled;
+
+            // Hacer requerido si está habilitado
+            if (enabled) {
+              targetEl.setAttribute('required', '');
+            } else {
+              targetEl.removeAttribute('required');
+            }
+          }
+
+          if (targetEl && !isDate) {
+            targetEl.disabled = !enabled;
+
+            // Hacer requerido si está habilitado
+            if (enabled) {
+              targetEl.setAttribute('required', '');
+            } else {
+              targetEl.removeAttribute('required');
+            }
+          }
+
+          if (wrapperEl) {
+            wrapperEl.classList.toggle('d-none', !enabled);
+          }
+        }
+  
+        if (triggerEl && targetEl) {
+          toggleTarget(); // Estado inicial
+          triggerEl.addEventListener('change', toggleTarget);
+        }
+      });
+    });
+
+
+const wizardNumbered = document.querySelector('.wizard-numbered'),
+  wizardNumberedBtnNextList = [].slice.call(wizardNumbered.querySelectorAll('.btn-next')),
+  wizardNumberedBtnPrevList = [].slice.call(wizardNumbered.querySelectorAll('.btn-prev')),
+  wizardNumberedBtnSubmit = wizardNumbered.querySelector('.btn-submit');
+
+if (typeof wizardNumbered !== undefined && wizardNumbered !== null) {
+  const numberedStepper = new Stepper(wizardNumbered, {
+    linear: false
+  });
+  /*if (wizardNumberedBtnNextList) {
+    wizardNumberedBtnNextList.forEach(wizardNumberedBtnNext => {
+      wizardNumberedBtnNext.addEventListener('click', event => {
+        numberedStepper.next();
+      });
+    });
+  }
+  if (wizardNumberedBtnPrevList) {
+    wizardNumberedBtnPrevList.forEach(wizardNumberedBtnPrev => {
+      wizardNumberedBtnPrev.addEventListener('click', event => {
+        numberedStepper.previous();
+      });
+    });
+  }
+  if (wizardNumberedBtnSubmit) {
+    wizardNumberedBtnSubmit.addEventListener('click', event => {
+      alert('Submitted..!!');
+    });
+  }*/
+}
+
+
+const formElement = document.querySelector('#wizard-validation-form');
+
+const wizardValidation = document.querySelector('#wizard-validation');
+
+if (typeof wizardValidation !== undefined && wizardValidation !== null) {
+  // Wizard form
+  const wizardValidationForm = wizardValidation.querySelector('#wizard-validation-form');
+  // Wizard steps
+  const wizardValidationFormStep1 = wizardValidationForm.querySelector('#step1');
+  const wizardValidationFormStep2 = wizardValidationForm.querySelector('#step2');
+  const wizardValidationFormStep3 = wizardValidationForm.querySelector('#step3');
+  const wizardValidationFormStep4 = wizardValidationForm.querySelector('#step4');
+  // Wizard next prev button
+  const wizardValidationNext = [].slice.call(wizardValidationForm.querySelectorAll('.btn-next'));
+  const wizardValidationPrev = [].slice.call(wizardValidationForm.querySelectorAll('.btn-prev'));
+
+  let validationStepper = new Stepper(wizardValidation, {
+    linear: true
+  });
+
+  const FormValidation1 = FormValidation.formValidation(wizardValidationFormStep1, {
+    fields: {
+        instancia: {
+          validators: {
+            notEmpty: {
+              message: 'This is required'
+            }
+          }
+        }
+      
+    },
+    plugins: {
+      trigger: new FormValidation.plugins.Trigger(),
+      bootstrap5: new FormValidation.plugins.Bootstrap5({
+        eleValidClass: ''
+      }),
+      autoFocus: new FormValidation.plugins.AutoFocus(),
+      submitButton: new FormValidation.plugins.SubmitButton()
+    }
+  }).on('core.form.valid', function() {
+    validationStepper.next();
+  });
+
+  const FormValidation2 = FormValidation.formValidation(wizardValidationFormStep2, {
+    fields: {
+      id_expediente_toca: {
+        validators: {
+          notEmpty: {
+            message: 'This is required'
+          }
+        }
+      }
+      ,expediente_toca: {
+        validators: {
+          notEmpty: {
+            message: 'This is required'
+          }
+        }
+      }
+    },
+    plugins: {
+      trigger: new FormValidation.plugins.Trigger(),
+      bootstrap5: new FormValidation.plugins.Bootstrap5({
+        // Use this for enabling/changing valid/invalid class
+        // eleInvalidClass: '',
+        eleValidClass: ''
+      }),
+      autoFocus: new FormValidation.plugins.AutoFocus(),
+      submitButton: new FormValidation.plugins.SubmitButton()
+    }
+  }).on('core.form.valid', function() {
+    validationStepper.next();
+  });
+
+  const FormValidation3 = FormValidation.formValidation(wizardValidationFormStep3, {
+    fields: {
+      
+    },
+    plugins: {
+      trigger: new FormValidation.plugins.Trigger(),
+      bootstrap5: new FormValidation.plugins.Bootstrap5({
+        // Use this for enabling/changing valid/invalid class
+        // eleInvalidClass: '',
+        eleValidClass: ''
+      }),
+      autoFocus: new FormValidation.plugins.AutoFocus(),
+      submitButton: new FormValidation.plugins.SubmitButton()
+    }
+  }).on('core.form.valid', function() {
+    validationStepper.next();
+  });
+
+  const FormValidation4 = FormValidation.formValidation(wizardValidationFormStep4, {
+    fields: {
+      
+    },
+    plugins: {
+      trigger: new FormValidation.plugins.Trigger(),
+      bootstrap5: new FormValidation.plugins.Bootstrap5({
+        // Use this for enabling/changing valid/invalid class
+        // eleInvalidClass: '',
+        eleValidClass: ''
+      }),
+      autoFocus: new FormValidation.plugins.AutoFocus(),
+      submitButton: new FormValidation.plugins.SubmitButton()
+    }
+  }).on('core.form.valid', function() {
+
+    const formElement = document.querySelector("#wizard-validation-form");
+    const formData = new FormData(formElement);
+    //const result = Object.fromEntries(data.entries());
+    for (const [key, value] of formData.entries()) {
+        console.log(key, value);
+      }
+    //wizardValidationForm.submit();
+  });
+
+  wizardValidationNext.forEach(item => {
+    item.addEventListener('click', event => {
+      switch (validationStepper._currentIndex) {
+        case 0:
+          FormValidation1.validate();
+          break;
+
+        case 1:
+          FormValidation2.validate();
+          break;
+
+        case 2:
+          FormValidation3.validate();
+          console.log(2);
+          break;
+
+        case 3:
+          FormValidation4.validate();
+          break;
+
+        default:
+          break;
+      }
+    });
+  });
+
+  wizardValidationPrev.forEach(item => {
+    item.addEventListener('click', event => {
+      switch (validationStepper._currentIndex) {
+        case 3:
+          validationStepper.previous();
+          break;
+        case 2:
+          validationStepper.previous();
+          break;
+        case 1:
+          validationStepper.previous();
+          break;
+        case 0:
+        default:
+          break;
+      }
+    });
+  });
+}
+  </script>
+  
+
+{% endblock %}

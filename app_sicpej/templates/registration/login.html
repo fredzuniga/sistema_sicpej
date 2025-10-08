@@ -1,0 +1,138 @@
+{% load static %}
+<!doctype html>
+<html
+  lang="es"
+  class="layout-wide customizer-hide"
+  dir="ltr"
+  data-skin="default"
+  data-bs-theme="light"
+  data-assets-path="{% static 'assets_sicpej/' %}"
+  data-template="horizontal-menu-template">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Iniciar Sesión | SICPEJ</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="{% static 'assets_sicpej/img/favicon/favicon.ico' %}" />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&ampdisplay=swap"
+      rel="stylesheet" />
+    <link rel="stylesheet" href="{% static 'assets_sicpej/vendor/fonts/iconify-icons.css' %}" />
+    <!-- Core CSS -->
+    <link rel="stylesheet" href="{% static 'assets_sicpej/vendor/libs/node-waves/node-waves.css' %}" />
+    <link rel="stylesheet" href="{% static 'assets_sicpej/vendor/libs/pickr/pickr-themes.css' %}" />
+    <link rel="stylesheet" href="{% static 'assets_sicpej/vendor/css/core.css' %}" />
+    <link rel="stylesheet" href="{% static 'assets_sicpej/css/demo.css' %}" />
+    <!-- Vendors CSS -->
+    <link rel="stylesheet" href="{% static 'assets_sicpej/vendor/libs/perfect-scrollbar/perfect-scrollbar.css' %}" />
+    <!-- Vendor -->
+    <link rel="stylesheet" href="{% static 'assets_sicpej/vendor/libs/@form-validation/form-validation.css' %}" />
+    <!-- Page CSS -->
+    <link rel="stylesheet" href="{% static 'assets_sicpej/vendor/css/pages/page-auth.css' %}" />
+    <!-- Helpers -->
+    <script src="{% static 'assets_sicpej/vendor/js/helpers.js' %}"></script>
+    <script src="{% static 'assets_sicpej/vendor/js/template-customizer.js' %}"></script>
+    <script src="{% static 'assets_sicpej/js/config.js' %}"></script>
+  </head>
+
+  <body>
+    <!-- Content -->
+    <div class="authentication-wrapper authentication-cover">
+      <div class="authentication-inner row m-0">
+
+        <!-- Imagen lateral -->
+        <div class="d-none d-lg-flex col-lg-7 col-xl-8 align-items-center justify-content-center p-12 pb-2">
+          <img
+            src="{% static 'assets_sicpej/img/illustrations/auth-login-illustration-light.png' %}"
+            class="auth-cover-illustration w-100"
+            alt="auth-illustration" />
+        </div>
+
+        <!-- Formulario de Login -->
+        <div class="d-flex col-12 col-lg-5 col-xl-4 align-items-center authentication-bg position-relative py-sm-12 px-12 py-6">
+          <div class="w-px-400 mx-auto pt-12 pt-lg-0">
+            <h3>Sistema de Inventario y Control de Prestamos de Expedientes Judiciales</h3>
+            <br><br>
+            <h4 class="mb-1">Bienvenido 👋</h4>
+            <p class="mb-5">Inicia sesión con tu cuenta</p>
+
+
+            <form id="formAuthentication" class="mb-5" method="post" action="{% url 'login' %}">
+                {% csrf_token %}
+
+                <!-- Usuario -->
+                <div class="form-floating form-floating-outline mb-5 form-control-validation">
+                    <input
+                        type="text"
+                        name="username"
+                        id="username"
+                        class="form-control"
+                        placeholder="Usuario"
+                        required
+                        autofocus
+                    />
+                    <label for="username">Usuario</label>
+                </div>
+
+                <!-- Contraseña -->
+                <div class="mb-5">
+                    <div class="form-password-toggle form-control-validation">
+                        <div class="input-group input-group-merge">
+                            <div class="form-floating form-floating-outline">
+                                <input
+                                    type="password"
+                                    name="password"
+                                    id="password"
+                                    class="form-control"
+                                    placeholder="Contraseña"
+                                    required
+                                />
+                                <label for="password">Contraseña</label>
+                            </div>
+                            <span class="input-group-text cursor-pointer">
+                                <i class="icon-base ri ri-eye-off-line icon-20px"></i>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Errores -->
+                {% if form.errors %}
+                    <p class="text-danger">Usuario o contraseña incorrectos.</p>
+                {% endif %}
+
+                <!-- Botón -->
+                <button type="submit" class="btn btn-primary d-grid w-100">Iniciar sesión</button>
+            </form>
+
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- / Content -->
+
+    <!-- Core JS -->
+    <script src="{% static 'assets_sicpej/vendor/libs/jquery/jquery.js' %}"></script>
+    <script src="{% static 'assets_sicpej/vendor/libs/popper/popper.js' %}"></script>
+    <script src="{% static 'assets_sicpej/vendor/js/bootstrap.js' %}"></script>
+    <script src="{% static 'assets_sicpej/vendor/libs/node-waves/node-waves.js' %}"></script>
+    <script src="{% static 'assets_sicpej/vendor/libs/perfect-scrollbar/perfect-scrollbar.js' %}"></script>
+    <script src="{% static 'assets_sicpej/vendor/js/menu.js' %}"></script>
+
+    <!-- Vendors JS -->
+    <script src="{% static 'assets_sicpej/vendor/libs/@form-validation/popular.js' %}"></script>
+    <script src="{% static 'assets_sicpej/vendor/libs/@form-validation/bootstrap5.js' %}"></script>
+    <script src="{% static 'assets_sicpej/vendor/libs/@form-validation/auto-focus.js' %}"></script>
+
+    <!-- Main JS -->
+    
+  </body>
+</html>

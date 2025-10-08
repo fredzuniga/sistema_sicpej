@@ -1,0 +1,66 @@
+{% extends 'sicpej/base.html' %}
+
+{% block title %}Seleccionar archivo regional{% endblock %}
+
+{% block content %}
+
+{% if messages %}
+  {% for message in messages %}
+    {% if message.tags == 'warning' %}
+      <div class="alert alert-solid-warning d-flex align-items-center flex-wrap row-gap-2" role="alert">
+        <span class="alert-icon rounded">
+          <i class="icon-base ri ri-alert-line icon-md"></i>
+        </span>
+        {{ message }}
+      </div>
+    {% endif %}
+  {% endfor %}
+{% endif %}
+
+<div class="col-md-8 offset-md-2">
+    <div class="card">
+        <div class="card-header">
+            <div class="row">
+                <div class="col-md-10">
+                    <h5 class="card-title">Seleccionar archivo regional</h5>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <p class="text-form">Por favor seleccione el archivo regional con el que desea trabajar:</p>
+            
+            <input type="text" id="filtro-archivos" class="form-control mb-3" placeholder="Buscar archivo regional...">
+
+            <hr>
+
+            <div class="list-group">
+                {% for archivo in archivos %}
+                <a href="{% url 'gestion:seleccion_organo_jurisdiccional' archivo.pk %}" 
+                class="list-group-item list-group-item-action">
+                    <h5>{{ archivo.nombre }}</h5>
+                    <p class="mb-1 text-muted">{{ archivo.descripcion|truncatechars:100 }}</p>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascript %}
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const input = document.getElementById('filtro-archivos');
+    const items = document.querySelectorAll('.list-group .list-group-item');
+
+    input.addEventListener('input', function () {
+      const filtro = input.value.toLowerCase();
+
+      items.forEach(function (item) {
+        const texto = item.textContent.toLowerCase();
+        item.style.display = texto.includes(filtro) ? '' : 'none';
+      });
+    });
+  });
+</script>
+{% endblock %}

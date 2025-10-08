@@ -1,0 +1,121 @@
+<div id="filtrosCollapse" class="mt-5 mb-5 pb-2 row" v-cloak>
+    
+      <div class="col-md-4">
+        <label for="search" class="form-label">Buscar</label>
+        <input type="text" class="form-control" id="search" 
+               v-model="search" placeholder="Número de expediente, descripción, clave ">
+      </div>
+      <div class="col-md-2">
+        <label for="per_page" class="form-label">Registros por página</label>
+        <select ref="perPageSelect" class="form-select select2" id="per_page">
+            <option v-for="option in per_page_options" :key="option" :value="option">
+                [[ option ]]
+            </option>
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label for="" class="form-label">Agregar opción busqueda</label><br>
+        <button class="btn btn-outline-primary mb-3" @click="agregarFiltro()" type="button">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M11 13H5v-2h6V5h2v6h6v2h-6v6h-2z"/></svg>
+        </button>
+      </div>
+
+      <div class="col-12 mb-2">
+        <div v-for="(filtro, index) in filtros" :key="index" class="row mb-3 align-items-end border p-2 rounded">
+            <div class="col-md-1">
+                <label class="switch switch-square p-5">
+                    <input type="checkbox" v-model="filtro.activo" title="Activar/Desactivar Filtro" class="switch-input">
+                    <span class="switch-toggle-slider">
+                        <span class="switch-on"></span>
+                        <span class="switch-off"></span>
+                    </span>
+                </label>
+            </div>
+          
+            <div class="col-md-2">
+                <label>Campo</label>
+                <select
+                    :id="'campo-select-' + index"
+                    class="form-select form-select-sm select2 filtro-select"
+                    v-model="filtro.campo"
+                    @change="onChangeCampo(index)">
+                    <option disabled value="">Seleccionar campo</option>
+                    <option v-for="campo in camposDisponibles" :value="campo.name">[[ campo.label ]]</option>
+                </select>
+            </div>
+          
+            <div class="col-md-3" v-if="filtro.tipo === 'text'">
+              <label>Valor</label>
+              <input class="form-control" v-model="filtro.valor" placeholder="Texto a buscar">
+            </div>
+
+            <!-- SELECT BOOL para tipo bool -->
+            <div class="col-md-3" v-if="filtro.tipo === 'bool'">
+                <label>Valor</label>
+                <select
+                    :id="'bool-select-' + index"
+                    class="form-select form-select-sm select2 filtro-select"
+                    v-model="filtro.valor">
+                    <option :value="''" disabled>Seleccionar</option>
+                    <option :value="true">Sí</option>
+                    <option :value="false">No</option>
+                </select>
+            </div>
+          
+            <template v-if="filtro.tipo === 'date'">
+              <div class="col-md-2">
+                <label>Tipo</label>
+                    <select
+                        :id="'rango-select-' + index"
+                        class="form-select form-select-sm select2 filtro-select"
+                        v-model="filtro.rango"
+                        @change="initFlatpickrFiltro(index)">
+                        <option :value="false">Fecha única</option>
+                        <option :value="true">Rango</option>
+                    </select>
+              </div>
+          
+              <div class="col-md-3">
+                <label>Fecha [[ filtro.rango ? 'Inicio' : '' ]]</label>
+                <input type="text" class="form-control" :id="'filtro-fecha-' + index" v-model="filtro.valor" placeholder="YYYY-MM-DD">
+              </div>
+          
+              <div class="col-md-3" v-if="filtro.rango">
+                <label>Fecha Fin</label>
+                <input type="text" class="form-control" :id="'filtro-fecha-fin-' + index" v-model="filtro.valor_fin" placeholder="YYYY-MM-DD">
+              </div>
+            </template>
+          
+            <div class="col-md-1 text-end">
+              <button type="button" class="btn btn-danger" @click="eliminarFiltro(index)">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M19 4h-3.5l-1-1h-5l-1 1H5v2h14M6 19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7H6z"/></svg>
+              </button>
+            </div>
+          </div>
+          
+      </div>
+  
+      
+      <div class="justify-content-end mt-4">
+        <div class="col-sm-12 d-flex justify-content-end">
+        {% if not user.configuracion.es_usuario_consulta and not user.configuracion.es_capturista_regional %}
+          {% if paquete.estatus != 3%}
+            <button type="button"
+                  class="btn btn-primary me-2 waves-effect waves-light"
+                  data-bs-toggle="modal"
+                  data-bs-target="#modalMoverExpediente">
+            <i class="fas fa-save"></i> Mover expediente(s)
+          </button>
+          {% endif %}
+        {% endif %}
+
+          <button type="button" @click="buscar" class="btn btn-primary me-2">
+            <i class="fas fa-search"></i> Filtrar
+          </button>
+          <button type="button" @click="limpiarFiltros" class="btn btn-secondary">
+            <i class="fas fa-undo"></i> Limpiar
+          </button>
+        </div>
+      </div>
+
+</div>

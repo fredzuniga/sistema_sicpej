@@ -1,0 +1,55 @@
+{% extends 'sicpej/base.html' %}
+
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <div class="row">
+            <div class="col-md-10">
+                <h5>{{ titulo }}</h5>
+            </div>
+            <div class="col-md-2 text-end">
+                <a href="{% url 'gestion:nuevo_perfil' %}" class="btn btn-primary mt-2">
+                    <i class="fas fa-plus"></i> Nuevo perfil
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="card-body">
+        <div class="table-responsive text-nowrap">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Descripción</th>
+                        <th>Creado por</th>
+                        <th>Fecha de creación</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for perfil in perfiles %}
+                    <tr>
+                        <td>{{ perfil.nombre }}</td>
+                        <td>{{ perfil.descripcion|default:"-" }}</td>
+                        <td>{{ perfil.creado_por.username|default:"-" }}</td>
+                        <td>{{ perfil.fecha_creacion|date:"d/m/Y H:i" }}</td>
+                        <td>
+                            <a href="{% url 'gestion:editar_perfil' perfil.pk %}" class="btn btn-sm btn-primary">
+                                <i class="fas fa-edit"></i> Editar
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center">No hay perfiles disponibles</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

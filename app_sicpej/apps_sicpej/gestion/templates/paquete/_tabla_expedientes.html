@@ -1,0 +1,68 @@
+<table id="tabla-expedientes" class="table table-bordered table-hover">
+    <thead class="thead-light">
+        <tr>
+            {% if not user.configuracion.es_usuario_consulta %} <th></th> {% endif %}
+            <th>No. expediente</th>
+            <th>Fecha de registro</th>
+            <th>Instancia</th>
+            <th>Tomo</th>
+            <th>Actor</th>
+            <th>Demandado</th>
+            <th>Estatus</th>
+            <th>Fecha concluido</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for expediente in expedientes %}
+        <tr>
+            {% if not user.configuracion.es_usuario_consulta %}
+            <td><input type="checkbox" name="expediente" id="expediente_{{ expediente.pk }}" value="{{ expediente.pk }}" /></td> {% endif %}
+            <td>{{ expediente.expediente_toca }}</td>
+            <td>{{ expediente.fecha_registro|date:"d/m/Y" }}</td>
+            <td>{{ expediente.instancia }}</td>
+            <td>{{ expediente.numero_tomo }}</td>
+            <td>{{ expediente.actor }}</td>
+            <td>{{ expediente.demandado|default:"" }}</td>
+            <td>
+                <span class="badge
+                    {% if expediente.estatus_expediente == 1 %}bg-info
+                    {% elif expediente.estatus_expediente == 2 %}bg-warning
+                    {% else %}bg-success
+                    {% endif %}">
+                    {{ expediente.get_estatus_expediente_display }}
+                </span>
+            </td>
+            <td>{{ expediente.fecha_concluido|date:"d/m/Y" }}</td>
+            <td>
+                <a data-id="{{ expediente.pk }}" href="javascript:void(0)" class="expediente-row btn btn-primary">Ver</a>
+                
+                {% if not user.configuracion.es_usuario_consulta %}
+                <a href="{% url 'gestion:editar_expediente' expediente.pk %}" class="btn btn-primary" title="Editar">
+                    Editar
+                </a>
+                {% endif %}
+                {% if user.configuracion.es_usuario_consulta %} 
+                    
+                    <a href="{% url 'gestion:detalle_expediente' expediente.pk %}" class="btn btn-primary" title="Editar" target="_blank">
+                    Detalle
+                    </a>
+                {% endif %}
+                
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="9" class="text-center">No hay expedientes registrados</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% if expedientes %}
+<div class="row mt-3">
+    <div class="col-md-12">
+        {% include 'sicpej/partials/paginacion_expedientes.html' %}
+    </div>
+</div>
+{% endif %}

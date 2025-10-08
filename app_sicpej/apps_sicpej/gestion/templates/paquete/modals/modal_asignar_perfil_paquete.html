@@ -1,0 +1,45 @@
+<!-- Modal de Confirmación -->
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-simple">
+        <div class="modal-content">
+        <div class="modal-body p-0">
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            
+            <div class="text-center">
+                <h5 class="mb-1">Asignar capturista</h5>
+            </div>
+
+            <div class="row">
+                
+                <label class="col-sm-12 col-form-label" for="id_usuario_perfil">Capturistas</label>
+                <div class="col-sm-6">
+                    <select name="id_usuario_perfil" id="id_usuario_perfil" class="select2 form-control">
+                        <option value="">-- Seleccione un perfil --</option>
+                        {% for perfil in usuarios_capturistas %}
+                        <option value="{{ perfil.id }}">
+                            {{ perfil.perfil.nombre }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-sm-6">
+                    Nombre: <br>
+                    <div id="nombre_usuario"></div>
+                </div>
+            </div>
+            <div class="row mt-4">
+                <div class="col-12 d-flex flex-wrap justify-content-center gap-4 row-gap-4 mt-4">
+                    <button type="button" class="btn btn-primary" id="confirmSubmitAsignacionPaquete">
+                        <i class="fas fa-check"></i> Confirmar Registro
+                    </button>
+
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times"></i> Cancelar
+                    </button>
+                </div>
+            </div>
+            
+        </div>
+        </div>
+    </div>
+</div>

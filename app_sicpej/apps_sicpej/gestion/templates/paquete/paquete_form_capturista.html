@@ -1,0 +1,127 @@
+{% extends 'sicpej/base.html' %}
+
+{% block title %}Nuevo paquete: {{ organo_jurisdiccional_actual.nombre }}, {{ organo_jurisdiccional_actual.municipio.descripcion }}{% endblock %}
+
+{% block content %}
+{% include "paquete/paquete_breadcrumb.html" %}
+
+<div class="col-md-12">
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title">Nuevo paquete para: <b> {{ organo_jurisdiccional_actual.nombre }}, {{ organo_jurisdiccional_actual.municipio.descripcion }} </b></h5>
+            <div class="row justify-content-end">
+                <div class="col-sm-12 d-flex justify-content-end">
+
+                    <form method="post" id="paqueteForm">
+
+                        {% csrf_token %}
+
+                        {% include "paquete/modals/modal_confirm_paquete.html" %}
+
+                        <input type="hidden" name="organo_jurisdiccional" id="organo_jurisdiccional" value="{{ organo_jurisdiccional_actual.pk }}">
+
+                        <button type="submit" class="btn btn-primary me-2" id="submitBtn">
+                            <i class="fas fa-save"></i> Registrar paquete
+                        </button>
+                    </form>
+
+                    <a href="{% url 'gestion:lista_paquetes' %}" class="btn btn-secondary">
+                        <i class="fas fa-list"></i> Ver paquetes
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card-body">
+            <p class="text-form mt-5 mb-5">
+                <b>Últimos paquetes registrados:</b>
+            </p>
+            <div class="table-responsive text-nowrap">
+                <table class="table table-bordered table-hover">
+                    <thead class="thead-light">
+                        <tr>
+                            <th>Clave paquete</th>
+                            <th>Cantidad de expedientes</th>
+                            <th>Estatus</th>
+                            <th>Fecha Registro</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for paquete in paquetes %}
+                        <tr>
+                            <td>{{ paquete.clave_paquete }}</td>
+                            <td>{{ paquete.num_expedientes }}</td>
+                            <td>
+                                <span class="badge 
+                                    {% if paquete.estatus == 1 %}bg-info
+                                    {% elif paquete.estatus == 2 %}bg-warning
+                                    {% else %}bg-success
+                                    {% endif %}">
+                                    {{ paquete.get_estatus_display }}
+                                </span>
+                            </td>
+                            <td>{{ paquete.fecha_registro|date:"d/m/Y" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center">No hay paquetes registrados</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block javascript %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Obtener elementos
+    const submitBtn = document.getElementById('submitBtn');
+    const confirmModal = new bootstrap.Modal(document.getElementById('confirmModal'));
+    const confirmSubmit = document.getElementById('confirmSubmit');
+    const paqueteForm = document.getElementById('paqueteForm');
+    const cantidadInput = document.getElementById('cantidadPaquetes');
+
+    // Mostrar modal al hacer clic en el botón de submit
+    submitBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        confirmModal.show();
+    });
+
+    confirmSubmit.addEventListener('click', function () {
+        var cantidad = parseInt(cantidadInput.value);
+        var clasificacionSelect = $('#id_clasificacion_paquete'); // select2
+
+        var clasificacion = clasificacionSelect.val();
+
+        // Validación cantidad
+        if (isNaN(cantidad) || cantidad < 1) {
+            cantidadInput.classList.add('is-invalid');
+            cantidadInput.focus();
+            return;
+        } else {
+            cantidadInput.classList.remove('is-invalid');
+        }
+
+        // Validación clasificación
+        if (!clasificacion) {
+            clasificacionSelect.addClass('is-invalid');
+            clasificacionSelect.select2('open'); // abrir el select2 si está vacío
+            return;
+        } else {
+            clasificacionSelect.removeClass('is-invalid');
+        }
+
+        // Si todo es válido, se envía el formulario
+        paqueteForm.submit();
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando, espere...';
+        submitBtn.disabled = true;
+    });
+
+});
+</script>
+{% endblock %}

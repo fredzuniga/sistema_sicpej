@@ -1,0 +1,91 @@
+<!-- Panel de Filtros -->
+<div id="filtrosCollapse" class="mt-5 mb-5 pb-2 row">
+    <form method="get" class="row g-3">
+        {% if user.configuracion.es_usuario_consulta %}
+            <div class="row mb-2">
+                <label for="organo-select" class="col-sm-3 col-form-label">Filtrar por órgano Jurisdiccional:</label>
+            
+                <div class="col-sm-5">
+                    <select id="organo-select" name="organo_id" class="form-control select2">
+                        <option value="">-- Selecciona un órgano --</option>
+                        {% for org in organos_disponibles %}
+                        <option value="{{ org.id }}" {% if org.id == organo_jurisdiccional.pk %}selected{% endif %}>
+                            {{ org.nombre }} ({{ org.municipio.descripcion }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        {% endif %}
+
+        
+        <div class="col-md-4">
+            <label for="search" class="form-label">Buscar</label>
+            <input type="text" class="form-control" id="search" name="search" 
+                    value="{{ search }}" placeholder="Número de paquete, descripción, clave ">
+        </div>
+        <div class="col-md-2">
+            <label for="estatus" class="form-label">Estatus</label>
+            <select class="form-select select2" id="estatus" name="estatus">
+                <option value="">Todos</option>
+                {% for estatus in estatus_options %}
+                <option value="{{ estatus.0 }}" {% if estatus_selected == estatus.0|stringformat:"s" %}selected{% endif %}>
+                    {{ estatus.1 }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label for="per_page" class="form-label">Registros por página</label>
+            <select class="form-select select2" id="per_page" name="per_page">
+                {% for option in per_page_options %}
+                <option value="{{ option }}" {% if per_page == option %}selected{% endif %}>
+                    {{ option }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label for="fecha_inicio" class="form-label">Fecha desde</label>
+            <div class="form-floating form-floating-outline">
+                <input type="text" class="form-control" placeholder="YYYY-MM-DD" id="flatpickr-begin" name="fecha_inicio" value="{{ fecha_inicio }}"/>
+            </div> 
+        </div>
+        <div class="col-md-2">
+            <label for="fecha_fin" class="form-label">Fecha hasta</label>
+            <div class="form-floating form-floating-outline">
+                <input type="text" class="form-control" placeholder="YYYY-MM-DD" id="flatpickr-end" name="fecha_fin" value="{{ fecha_fin }}"/>
+            </div> 
+        </div>
+
+        <div class="col-md-12">
+            <label class="form-label d-block">Clasificación del paquete:</label>
+
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="clasificacion_paquete" id="clasificacion_todos" value="" {% if not clasificacion_paquete %}checked{% endif %}>
+                <label class="form-check-label" for="clasificacion_todos">Todos</label>
+            </div>
+
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="clasificacion_paquete" id="clasificacion_tramite" value="N" {% if clasificacion_paquete == "N" %}checked{% endif %}>
+                <label class="form-check-label" for="clasificacion_tramite">Trámite</label>
+            </div>
+
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="clasificacion_paquete" id="clasificacion_concluido" value="C" {% if clasificacion_paquete == "C" %}checked{% endif %}>
+                <label class="form-check-label" for="clasificacion_concluido">Concluido</label>
+            </div>
+        </div>
+
+        <div class="justify-content-end mt-1">
+            <div class="col-sm-12 d-flex justify-content-end">
+                <button type="submit" class="btn btn-primary me-2">
+                    <i class="fas fa-search"></i> Filtrar
+                </button>
+                <a href="{% url 'gestion:lista_paquetes' %}" class="btn btn-secondary">
+                    <i class="fas fa-undo"></i> Limpiar
+                </a>
+            </div>
+        </div>
+    </form>
+</div>

@@ -1,0 +1,67 @@
+{% extends 'sicpej/base.html' %}
+
+{% block title %}{{ accion }} archivo regional{% endblock %}
+
+{% block content %}
+
+<div class="row mb-6 gy-6">
+    <div class="col-md-12">
+    <div class="card">
+        <div class="card-header d-flex align-items-center justify-content-between">
+        <h5 class="mb-0">{{ titulo }}</h5>
+        <small class="text-body-secondary float-end"> {{ descripcion }} </small>
+        </div>
+        <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            
+            <div class="row mb-4">
+            <label class="col-sm-2 col-form-label" for="id_nombre">Nombre</label>
+            <div class="col-sm-10">
+                <input type="text" name="nombre" id="id_nombre" class="form-control" placeholder="Nombre" value="{{ archivo.nombre|default_if_none:'' }}" required>
+            </div>
+            </div>
+
+            <div class="row mb-4">
+                <label class="col-sm-2 col-form-label" for="id_municipio">Municipio</label>
+                <div class="col-sm-10">
+                    <select name="id_municipio" id="id_municipio" class="select2 form-control">
+                        <option value="">-- Seleccione un municipio --</option>
+                        {% for municipio in municipios %}
+                          <option value="{{ municipio.id }}"
+                            {% if municipio.id == archivo.municipio.id %}selected{% endif %}>
+                            {{ municipio.descripcion }}
+                          </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="row mb-4">
+                <label class="col-sm-2 col-form-label" for="locacion">Locación</label>
+                <div class="col-sm-10">
+                    <textarea name="locacion" id="locacion" class="form-control" placeholder="Locación">{{ archivo.locacion|default_if_none:'' }}</textarea>
+                </div>
+            </div>
+
+
+            <div class="row mb-4">
+                <label class="col-sm-2 col-form-label" for="id_descripcion">Descripción</label>
+                <div class="col-sm-10">
+                    <textarea name="descripcion" id="id_descripcion" class="form-control" placeholder="Descripción">{{ archivo.descripcion|default_if_none:'' }}</textarea>
+                </div>
+            </div>
+    
+            <div class="row justify-content-end">
+                <div class="col-sm-12 d-flex justify-content-end">
+                    <button type="submit" class="btn btn-primary waves-effect waves-light me-2">{{ accion }}</button>
+                    <a href="{% url 'administracion:lista_archivos_regional' %}" class="btn btn-secondary">Cancelar</a>
+                </div>
+            </div>
+        </form>
+        </div>
+    </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,383 @@
+{% extends 'sicpej/base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+    .apexcharts-legend{
+        margin-top: -28px!important;
+    }
+</style>
+<div class="container-fluid">
+    <h4 class="mt-4">Dashboard 
+        {% if user.configuracion.archivo_regional  %}
+            {{ user.configuracion.archivo_regional }}
+        {% else %}
+            general
+        {% endif %}
+    </h4>
+    <!-- Resumen general -->
+
+    <div class="row mt-4 mb-4">
+        <div class="col-sm-6 col-lg-3">
+            <div class="card card-border-shadow-primary h-100">
+              <div class="card-body">
+                <div class="d-flex align-items-center mb-2">
+                  <div class="avatar me-4">
+                    <span class="avatar-initial rounded-3 bg-label-primary"><i class="icon-base ri ri-car-line icon-24px"></i></span>
+                  </div>
+                  <h4 class="mb-0">{{total_paquetes}}</h4>
+                </div>
+                <h6 class="mb-0 fw-normal">Total de paquetes</h6>
+                
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-6 col-lg-3">
+            <div class="card card-border-shadow-warning h-100">
+              <div class="card-body">
+                <div class="d-flex align-items-center mb-2">
+                  <div class="avatar me-4">
+                    <span class="avatar-initial rounded-3 bg-label-warning"><i class="icon-base ri ri-alert-line icon-24px"></i></span>
+                  </div>
+                  <h4 class="mb-0">{{total_expedientes}}</h4>
+                </div>
+                <h6 class="mb-0 fw-normal">Total de expedientes</h6>
+                
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-6 col-lg-3">
+            <div class="card card-border-shadow-danger h-100">
+              <div class="card-body">
+                <div class="d-flex align-items-center mb-2">
+                  <div class="avatar me-4">
+                    <span class="avatar-initial rounded-3 bg-label-danger"><i class="icon-base ri ri-route-line icon-24px"></i></span>
+                  </div>
+                  <h4 class="mb-0">{{paquetes_hoy}}</h4>
+                </div>
+                <h6 class="mb-0 fw-normal">Paquetes del día</h6>
+                
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-6 col-lg-3">
+            <div class="card card-border-shadow-info h-100">
+              <div class="card-body">
+                <div class="d-flex align-items-center mb-2">
+                  <div class="avatar me-4">
+                    <span class="avatar-initial rounded-3 bg-label-info"><i class="icon-base ri ri-time-line icon-24px"></i></span>
+                  </div>
+                  <h4 class="mb-0">{{expedientes_hoy}}</h4>
+                </div>
+                <h6 class="mb-0 fw-normal">Expedientes del día</h6>
+                
+              </div>
+            </div>
+          </div>
+    </div>
+    
+    <!-- Último paquete registrado -->
+    <div class="row">
+        
+
+        <div class="col-lg-6 mb-4 order-1 order-lg-0">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Paquetes por archivos regionales ({{ current_year }})</h6>
+                </div>
+                <div class="card-body">
+                    <div id="graficaPaquetesArchivosRegionales"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Último paquete registrado</h6>
+                </div>
+                <div class="card-body">
+                    {% if ultimo_paquete %}
+                    <div class="table-responsive">
+                        <table class="table table-bordered" width="100%" cellspacing="0">
+                            <tbody>
+                                <tr>
+                                    <th>Cantidad de expedientes</th>
+                                    <td>{{ ultimo_paquete.num_expedientes }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Número de paquete</th>
+                                    <td>{{ ultimo_paquete.numero_paquete }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Fecha y hora registro</th>
+                                    <td>{{ ultimo_paquete.fecha_creacion }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Juzgado</th>
+                                    <td>{{ ultimo_paquete.juzgado }}, {{ ultimo_paquete.juzgado.municipio.descripcion }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Estatus</th>
+                                    <th>
+                                        <span class="badge 
+                                            {% if ultimo_paquete.estatus == 1 %}bg-info
+                                            {% elif ultimo_paquete.estatus == 2 %}bg-warning
+                                            {% else %}bg-success
+                                            {% endif %}">
+                                            {{ ultimo_paquete.get_estatus_display }}
+                                        </span>
+                                    </th>
+                                </tr>
+                                <tr>
+                                    <th>Consultar</th>
+                                    <th>
+                                        <a href="{% url 'gestion:ver_paquete' ultimo_paquete.pk %}" 
+                                        class="btn btn-info" title="Ver">
+                                            Detalle
+                                        </a>
+                                    </th>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p>No hay paquetes registrados</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tendencias temporales -->
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Tendencias anuales ({{ current_year }})</h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-area">
+                        <canvas id="tendenciasChart"></canvas>
+                    </div>
+                    <div class="mt-4 text-center">
+                        <h6 class="small font-weight-bold">Crecimiento Interanual</h6>
+                        <div class="display-4 {% if tasa_crecimiento_anual >= 0 %}text-success{% else %}text-danger{% endif %}">
+                            {{ tasa_crecimiento_anual|floatformat:2 }}%
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Gráficos principales -->
+    <div class="row">
+        {{ current_year_data }}
+        <!-- Paquetes por mes (año actual) -->
+        <div class="col-xl-12 mb-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Paquetes por mes (Año {{ current_year }})</h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-area">
+                        <canvas id="paquetesMensualesChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascript %}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+<script>
+// Gráfico de tendencias temporales (comparativa anual)
+document.addEventListener('DOMContentLoaded', function() {
+    const tendenciasCtx = document.getElementById('tendenciasChart').getContext('2d');
+    new Chart(tendenciasCtx, {
+        type: 'line',
+        data: {
+            labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
+            datasets: [
+                {
+                    label: 'Año Actual',
+                    data: [
+                        {% for item in paquetes_por_mes_anio_actual %}
+                            {{ item.total }},
+                        {% endfor %}
+                    ],
+                    borderColor: '#4e73df',
+                    backgroundColor: 'rgba(78, 115, 223, 0.05)',
+                    tension: 0.3,
+                    fill: true
+                },
+                {
+                    label: 'Año Anterior',
+                    data: [
+                        {% for item in paquetes_por_mes_anio_anterior %}
+                            {{ item.total }},
+                        {% endfor %}
+                    ],
+                    borderColor: '#e74a3b',
+                    backgroundColor: 'rgba(231, 74, 59, 0.05)',
+                    tension: 0.3,
+                    fill: true,
+                    borderDash: [5, 5]
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            },
+            plugins: {
+                tooltip: {
+                    mode: 'index',
+                    intersect: false
+                }
+            }
+        }
+    });
+
+    // Gráfico de paquetes mensuales
+    const paquetesMensualesCtx = document.getElementById('paquetesMensualesChart').getContext('2d');
+    new Chart(paquetesMensualesCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
+            datasets: [{
+                label: 'Paquetes',
+                data: [
+                    {% for item in paquetes_por_mes_anio_actual %}
+                        {{ item.total }},
+                    {% endfor %}
+                ],
+                backgroundColor: 'rgba(78, 115, 223, 0.5)',
+                borderColor: 'rgba(78, 115, 223, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+});
+//graficaPaquetesArchivosRegionales
+</script>
+
+<script>
+    // Colores de ejemplo
+    const labels = {{ paquetes_regionales_data.labels|safe }};
+    const series = {{ paquetes_regionales_data.series|safe }};
+
+    const h = {
+      donut: {
+        series1: "#7367F0",
+        series2: "#28C76F",
+        series3: "#EA5455",
+        series4: "#FF9F43",
+        series5: "#00cfe8"
+      }
+    };
+    const e = "#fff"; // color del borde
+    const n = "#6E6B7B"; // nombre
+    const o = "#5E5873"; // valor y leyenda
+
+    const options = {
+      chart: {
+        height: 243,
+        type: "donut",
+        parentHeightOffset: 0
+      },
+      labels:  {{ paquetes_regionales_data.labels|safe }},
+      tooltip: { enabled: false },
+      dataLabels: { enabled: false },
+      stroke: {
+        width: 3,
+        lineCap: "round",
+        colors: [e]
+      },
+      states: {
+        hover: { filter: { type: "none" } },
+        active: { filter: { type: "none" } }
+      },
+      plotOptions: {
+        pie: {
+          startAngle: -130,
+          endAngle: 130,
+          customScale: 0.9,
+          donut: {
+            size: "80%",
+            labels: {
+              show: true,
+              name: {
+                offsetY: 25,
+                fontSize: "11px",
+                fontFamily: "Inter",
+                color: n
+              },
+              value: {
+                offsetY: -15,
+                fontWeight: 500,
+                fontSize: "1.2rem",
+                fontFamily: "Inter",
+                color: o,
+                formatter: function (val) {
+                  return parseInt(val) + "K";
+                }
+              },
+              total: {
+                show: true,
+                label: "{{ current_year }}",
+                fontSize: "0.9375rem",
+                fontFamily: "Inter",
+                color: n,
+                formatter: function () {
+                  return "{{ paquetes_regionales_data.total }}";
+                }
+              }
+            }
+          }
+        }
+      },
+      series: {{ paquetes_regionales_data.series|safe }},
+      legend: {
+        position: "bottom",
+        fontFamily: "Inter",
+        fontSize: "15px",
+        markers: {
+          offsetX: -5,
+          strokeWidth: 0
+        },
+        itemMargin: {
+          horizontal: 24,
+          vertical: 8
+        },
+        labels: {
+          colors: o
+        }
+      },
+      colors: [
+        h.donut.series1,
+        h.donut.series2,
+        h.donut.series3,
+        h.donut.series4,
+        h.donut.series5
+      ]
+    };
+
+    const chart = new ApexCharts(document.querySelector("#graficaPaquetesArchivosRegionales"), options);
+    chart.render();
+  </script>
+{% endblock %}

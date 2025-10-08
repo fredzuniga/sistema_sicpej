@@ -1,0 +1,46 @@
+{% extends 'sicpej/base.html' %}
+
+{% block title %}Detalle de materia{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h3 class="card-title">Detalle de materia</h3>
+        <div>
+            <a href="{% url 'administracion:editar_materia' materia.pk %}" class="btn btn-primary">
+                <i class="fas fa-edit"></i> Editar
+            </a>
+        </div>
+    </div>
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-3">Nombre:</dt>
+            <dd class="col-sm-9">{{ materia.nombre }}</dd>
+            
+            <dt class="col-sm-3">Estatus:</dt>
+            <dd class="col-sm-9">
+                <span class="badge bg-{% if materia.estatus %}success{% else %}secondary{% endif %}">
+                    {{ materia.get_estatus_display }}
+                </span>
+            </dd>
+            
+            <dt class="col-sm-3">Descripción:</dt>
+            <dd class="col-sm-9">{{ materia.descripcion|default:"-"|linebreaks }}</dd>
+            
+            <dt class="col-sm-3">Notas:</dt>
+            <dd class="col-sm-9">{{ materia.nota|default:"-"|linebreaks }}</dd>
+            
+            <dt class="col-sm-3">Fecha creación:</dt>
+            <dd class="col-sm-9">{{ materia.fecha_creacion|date:"d/m/Y H:i" }}</dd>
+            
+            <dt class="col-sm-3">Última actualización:</dt>
+            <dd class="col-sm-9">{{ materia.fecha_actualizacion|date:"d/m/Y H:i" }}</dd>
+        </dl>
+    </div>
+    <div class="card-footer">
+        <a href="{% url 'administracion:lista_materias' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Volver al listado
+        </a>
+    </div>
+</div>
+{% endblock %}

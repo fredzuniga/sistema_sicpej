@@ -1,0 +1,41 @@
+<!-- Modal de Confirmación -->
+<div class="modal fade" id="modalMoverExpediente" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-simple">
+        <div class="modal-content">
+        <div class="modal-body p-0">
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            
+            <div class="text-center">
+                <h5 class="mb-1">Mover expedientes</h5>
+            </div>
+
+            <div class="row">
+                
+                <label class="col-sm-12 col-form-label" for="paquete_destino_id">Paquetes disponibles</label>
+                <div class="col-sm-6">
+                    <select name="paquete_destino_id" id="paquete_destino_id" class="select2 form-control">
+                        <option value="">-- Seleccione un paquete --</option>
+                        {% for paquete in paquetes_disponibles %}
+                        <option value="{{ paquete.id }}">
+                            {{ paquete.clave_paquete }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="row mt-4">
+                <div class="col-12 d-flex flex-wrap justify-content-center gap-4 row-gap-4 mt-4">
+                    <button type="button" class="btn btn-primary" id="confirmSubmitMoverExpedientesPaquete" @click="confirmarMovimientoExpedientePaquete">
+                        <i class="fas fa-check"></i> Confirmar cambio
+                    </button>
+
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times"></i> Cancelar
+                    </button>
+                </div>
+            </div>
+            
+        </div>
+        </div>
+    </div>
+</div>

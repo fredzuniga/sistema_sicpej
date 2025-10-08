@@ -1,0 +1,91 @@
+{% extends 'sicpej/base.html' %}
+
+{% block title %}{{ accion }} usuario{% endblock %}
+
+{% block content %}
+<div class="col-md-9 offset-md-1">
+  <div class="card">
+    <div class="card-header d-flex align-items-center justify-content-between">
+      <h5 class="mb-0">{{ titulo }}</h5>
+    </div>
+    <div class="card-body">
+      
+      {% include "html/alert.html" %}
+      <form method="post">
+        {% csrf_token %}
+
+        {% for field in form %}
+          
+            <div class="row mb-5 mt-5 {% if field.name == 'perfil_capturista' or field.name == 'estatus_perfil'%}opciones-capturista{% endif %}" >
+              <label for="{{ field.id_for_label }}" class="col-sm-2 col-form-label">{{ field.label }}</label>
+              <div class="col-sm-10">
+                {% if field.name == 'juzgado' or field.name == 'archivo_regional' or field.name == 'organo_jurisdiccional' or field.name == 'perfil_capturista' or field.name == 'estatus_perfil'%}
+                  <select name="{{ field.name }}" id="{{ field.id_for_label }}" class="form-select {% if field.errors %}is-invalid{% endif %} select2" 
+                  >
+                    {% for value, label in field.field.choices %}
+                      <option value="{{ value }}" {% if value == field.value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                  </select>
+                {% elif field.name == 'is_active' %}
+                  <div class="form-check form-switch mt-4 me-2">
+                    <input type="checkbox" name="{{ field.name }}" id="{{ field.id_for_label }}"
+                        class="form-check-input {% if field.errors %}is-invalid{% endif %}"
+                        {% if field.value %}checked{% endif %}>
+                  </div>
+                  {% elif field.name in form.boolean_field_names %}
+                  <div class="form-check form-switch mt-4 me-2">
+                    <input type="checkbox" name="{{ field.name }}" id="{{ field.id_for_label }}"
+                        class="form-check-input {% if field.errors %}is-invalid{% endif %}"
+                        {% if field.value %}checked{% endif %}>
+                  </div>
+                {% else %}
+                  {{ field }}
+                {% endif %}
+
+                {% if field.help_text %}
+                  <div class="form-text">{{ field.help_text }}</div>
+                {% endif %}
+
+                {% for error in field.errors %}
+                  <div class="invalid-feedback d-block">{{ error }}</div>
+                {% endfor %}
+              </div>
+            </div>
+
+        {% endfor %}
+
+        <div class="row justify-content-end">
+            <div class="col-sm-12 d-flex justify-content-end">
+                <button type="submit" class="btn btn-primary waves-effect waves-light me-2">{{ accion }}</button>
+                <a href="{% url 'administracion:lista_usuarios' %}" class="btn btn-secondary">Cancelar</a>
+            </div>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block javascript %}
+<script>
+
+function mostrarSelects() {
+    if ($('#id_es_capturista_regional').is(':checked')) {
+        $('.opciones-capturista').show();
+    } else {
+        $('.opciones-capturista').hide();
+    }
+}
+
+// Ejecuta al cargar la página
+mostrarSelects();
+
+$('#id_es_capturista_regional').change(function() {
+    mostrarSelects();
+});
+
+
+</script>
+{% endblock %}

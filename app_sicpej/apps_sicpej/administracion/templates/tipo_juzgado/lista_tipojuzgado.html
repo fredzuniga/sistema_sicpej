@@ -1,0 +1,58 @@
+{% extends 'sicpej/base.html' %}
+
+{% block title %}Lista de tipo de juzgados{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <div class="row">
+            <div class="col-md-10">
+                <h5>Lista de materias juzgado</h5>
+            </div>
+            <div class="col-md-2 text-right">
+                <a href="{% url 'administracion:nuevo_tipo_juzgado' %}" class="btn btn-primary">Nueva materia para juzgados</a>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        
+        <div class="table-responsive text-nowrap">
+            <table class="table">
+                <thead class="thead-light">
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Estatus</th>
+                        <th>Fecha Creación</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tipo in tipos_juzgado %}
+                    <tr>
+                        <td>{{ tipo.nombre }}</td>
+                        <td>
+                            {% if tipo.estatus == 1 %}
+                                <span class="badge rounded-pill bg-label-primary me-1">{{ tipo.get_estatus_display }}</span>
+                            {% else %}
+                                <span class="badge rounded-pill bg-label-dark me-1">Inactivo</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ tipo.fecha_creacion|date:"d/m/Y" }}</td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                
+                                <a href="{% url 'administracion:editar_tipo_juzgado' tipo.pk %}" class="btn btn-primary waves-effect waves-light">Editar</a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center">No hay tipos de juzgado registrados</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
