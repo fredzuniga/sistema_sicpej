@@ -22,6 +22,26 @@ from .tools import filtrar_y_paginar_queryset, parse_filtros_from_get
 from django.http import JsonResponse
 from django.template.loader import render_to_string
 
+def get_elided_page_range(paginator, number, on_each_side=2, on_ends=1):
+    number = int(number)
+    if paginator.num_pages <= (on_each_side + on_ends) * 2:
+        return paginator.page_range
+
+    result = []
+
+    left_edge = range(1, on_ends + 1)
+    left_middle = range(max(number - on_each_side, on_ends + 1), number)
+    right_middle = range(number + 1, min(number + on_each_side + 1, paginator.num_pages - on_ends + 1))
+    right_edge = range(paginator.num_pages - on_ends + 1, paginator.num_pages + 1)
+
+    last = 0
+    for part in [left_edge, left_middle, [number], right_middle, right_edge]:
+        for page in part:
+            if page - last > 1:
+                result.append("...")
+            result.append(page)
+            last = page
+    return result
 
 class CrearExpedienteRedireccionView(PaqueteBaseView, View):
     def get(self, request, *args, **kwargs):
@@ -193,7 +213,8 @@ class ExpedienteListView(PaqueteBaseView, ListView):
         expedientes_page, paginator = filtrar_y_paginar_queryset(expedientes, filtros, self.request)
         
         context['expedientes'] = expedientes_page
-        context['paginator_range'] = paginator.get_elided_page_range(
+        context['paginator_range'] = get_elided_page_range(
+            expedientes_page.paginator,
             expedientes_page.number,
             on_each_side=2,
             on_ends=1

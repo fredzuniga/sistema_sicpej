@@ -124,7 +124,7 @@ class Paquete(models.Model):
 def archivo_upload_path(instance, filename):
     timestamp = now().strftime('%Y%m%d%H%M%S')
     # Nombre final: DOCUMENTO-PRESTAMO-EXPEDIENTE-ID-TIMESTAMP.pdf
-    filename = f"DOCUMENTO-PRESTAMO-EXPEDIENTE-{instance.id}-{timestamp}.pdf"
+    filename = f"DOC-PRESTAMO-EXP-{instance.id}-{timestamp}.pdf"
     # Ruta final: documentos/expediente_<id>/<archivo>.pdf
     return os.path.join('documentos', f"expediente_{instance.id}", filename)
 

@@ -47,46 +47,87 @@
 
             <!-- TAB: GENERAL -->
             <div class="tab-pane fade show active" id="tab-general" role="tabpanel">
-              <h6 class="mb-2">📌 Datos Básicos</h6>
-              <p><strong>Observaciones:</strong> [[ modalData.observaciones ]]</p>
-              <p><strong>Expediente:</strong> [[ modalData.expediente_toca ]]</p>
-              <p><strong>Estatus:</strong> [[ modalData.estatus_display ]]</p>
+              <div class="row g-3">
+                
+                <!-- 📌 Datos Básicos -->
+                <div class="col-md-6">
+                  <div class="card shadow-sm border-0 h-100">
+                    <div class="card-body">
+                      <h6 class="card-title mb-3">📌 Datos Básicos</h6>
+                      <p><strong>Observaciones:</strong> [[ modalData.observaciones ]]</p>
+                      <p><strong>Expediente:</strong> [[ modalData.expediente_toca ]]</p>
+                      <p><strong>Estatus:</strong> [[ modalData.estatus_display ]]</p>
+                    </div>
+                  </div>
+                </div>
 
-              <hr>
-              <h6 class="mb-2">📅 Fechas</h6>
-              <p><strong>Fecha de registro:</strong> [[ modalData.fecha_registro ]]</p>
-              <p><strong>Inicio:</strong> [[ modalData.fecha_inicio ]]</p>
-              <p><strong>Sentencia:</strong> [[ modalData.fecha_sentencia ]]</p>
-              <p><strong>Archivo:</strong> [[ modalData.fecha_archivo ]]</p>
-              <p><strong>Convenio:</strong> [[ modalData.fecha_convenio ]]</p>
-              <p><strong>Ejecutoria:</strong> [[ modalData.fecha_ejecutoria ]]</p>
+                <!-- 📅 Fechas -->
+                <div class="col-md-6">
+                  <div class="card shadow-sm border-0 h-100">
+                    <div class="card-body">
+                      <h6 class="card-title mb-3">📅 Fechas</h6>
+                      <p><strong>Fecha de registro:</strong> [[ modalData.fecha_registro ]]</p>
+                      <p><strong>Inicio:</strong> [[ modalData.fecha_inicio ]]</p>
+                      <p><strong>Sentencia:</strong> [[ modalData.fecha_sentencia ]]</p>
+                      <p><strong>Archivo:</strong> [[ modalData.fecha_archivo ]]</p>
+                      <p><strong>Convenio:</strong> [[ modalData.fecha_convenio ]]</p>
+                      <p><strong>Ejecutoria:</strong> [[ modalData.fecha_ejecutoria ]]</p>
+                    </div>
+                  </div>
+                </div>
 
-              <hr>
-              <h6 class="mb-2">⚖️ Datos del Juicio</h6>
-              <p><strong>Juicio / Delito:</strong> [[ modalData.juicio_delito ]]</p>
-              <p><strong>Actor:</strong> [[ modalData.actor ]]</p>
-              <p><strong>Demandado:</strong> [[ modalData.demandado ]]</p>
-              <p><strong>Beneficiario:</strong> [[ modalData.beneficiario ]]</p>
+                <!-- ⚖️ Datos del Juicio -->
+                <div class="col-md-6">
+                  <div class="card shadow-sm border-0 h-100">
+                    <div class="card-body">
+                      <h6 class="card-title mb-3">⚖️ Datos del Juicio</h6>
+                      <p><strong>Juicio / Delito:</strong> [[ modalData.juicio_delito ]]</p>
+                      <p><strong>Actor:</strong> [[ modalData.actor ]]</p>
+                      <p><strong>Demandado:</strong> [[ modalData.demandado ]]</p>
+                      <p><strong>Beneficiario:</strong> [[ modalData.beneficiario ]]</p>
+                    </div>
+                  </div>
+                </div>
 
-              <hr>
-              <h6 class="mb-2">👩‍⚖️ Personal</h6>
-              <p><strong>Juez:</strong> [[ modalData.juez ]]</p>
-              <p><strong>Secretario:</strong> [[ modalData.secretario ]]</p>
+                <!-- 👩‍⚖️ Personal -->
+                <div class="col-md-6">
+                  <div class="card shadow-sm border-0 h-100">
+                    <div class="card-body">
+                      <h6 class="card-title mb-3">👩‍⚖️ Personal</h6>
+                      <p><strong>Juez:</strong> [[ modalData.juez ]]</p>
+                      <p><strong>Secretario:</strong> [[ modalData.secretario ]]</p>
+                    </div>
+                  </div>
+                </div>
 
-              <hr>
-              <h6 class="mb-2">📁 Tomos y Folios</h6>
-              <p><strong>Número de tomo:</strong> [[ modalData.numero_tomo ]]</p>
-              <p><strong>Rango folio inicial:</strong> [[ modalData.rango_folio_inicial ]]</p>
-              <p><strong>Rango folio final:</strong> [[ modalData.rango_folio_final ]]</p>
+                <!-- 📁 Tomos y Folios -->
+                <div class="col-md-6">
+                  <div class="card shadow-sm border-0 h-100">
+                    <div class="card-body">
+                      <h6 class="card-title mb-3">📁 Tomos y Folios</h6>
+                      <p><strong>Número de tomo:</strong> [[ modalData.numero_tomo ]]</p>
+                      <p><strong>Rango folio inicial:</strong> [[ modalData.rango_folio_inicial ]]</p>
+                      <p><strong>Rango folio final:</strong> [[ modalData.rango_folio_final ]]</p>
+                    </div>
+                  </div>
+                </div>
 
-              <hr>
-              <h6 class="mb-2">⚙️ Otros</h6>
-              <p><strong>Original:</strong> [[ modalData.original ? 'Sí' : 'No' ]]</p>
-              <p><strong>Duplicado:</strong> [[ modalData.duplicado ? 'Sí' : 'No' ]]</p>
-              <p><strong>Concluido:</strong> [[ modalData.concluido ? 'Sí' : 'No' ]]</p>
-              <p><strong>Fecha concluido:</strong> [[ modalData.fecha_concluido ]]</p>
-              
+                <!-- ⚙️ Otros -->
+                <div class="col-md-6">
+                  <div class="card shadow-sm border-0 h-100">
+                    <div class="card-body">
+                      <h6 class="card-title mb-3">⚙️ Otros</h6>
+                      <p><strong>Original:</strong> [[ modalData.original ? 'Sí' : 'No' ]]</p>
+                      <p><strong>Duplicado:</strong> [[ modalData.duplicado ? 'Sí' : 'No' ]]</p>
+                      <p><strong>Concluido:</strong> [[ modalData.concluido ? 'Sí' : 'No' ]]</p>
+                      <p><strong>Fecha concluido:</strong> [[ modalData.fecha_concluido ]]</p>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
             </div>
+
 
             <!-- TAB: RELACIONES -->
             <div class="tab-pane fade" id="tab-relaciones" role="tabpanel">
