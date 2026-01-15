@@ -14,9 +14,14 @@ class UserListView(LoginRequiredMixin, ListView):
     model = User
     template_name = 'usuarios/lista_usuarios.html'
     context_object_name = 'users'
+    paginate_by = 15
 
     def get_queryset(self):
-        return User.objects.prefetch_related('configuracion').all()
+        return (
+            User.objects
+            .select_related('configuracion')
+            .order_by('username')
+        )
 
 class UserCreateView(LoginRequiredMixin, CreateView):
     model = User

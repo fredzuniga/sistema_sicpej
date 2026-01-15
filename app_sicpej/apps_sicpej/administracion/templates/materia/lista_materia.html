@@ -49,6 +49,16 @@
                 </tbody>
             </table>
         </div>
+
+        {% if is_paginated %}
+            <div class="card-footer">
+                <div class="row">
+                    <div class="col-md-12 m-5">
+                        {% include 'sicpej/partials/paginacion.html' %}
+                    </div>
+                </div>
+            </div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}

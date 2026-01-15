@@ -37,6 +37,9 @@
             </div>
 
             {% include "expediente/filtros/filtro_lista_expedientes.html" %}
+
+            {% include "expediente/modals/expediente_detalle.html" %}
+
             <div class="table-responsive text-nowrap">
                 <div v-html="tabla"></div>
             </div>
@@ -57,6 +60,14 @@
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
 <script>
+
+function getCSRFToken() {
+    return document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+}
+
+const csrfToken = getCSRFToken();
+axios.defaults.headers.common['X-CSRFToken'] = csrfToken;
+
     new Vue({
       el: '#app-expedientes',
       delimiters: ['[[', ']]'],
@@ -171,13 +182,19 @@
               });
             });
     
-            document.querySelectorAll('[data-expediente]').forEach(btn => {
-              btn.addEventListener('click', () => {
-                const scriptId = btn.getAttribute('data-expediente');
-                const data = JSON.parse(document.getElementById(scriptId).textContent);
-                this.modalData = data;
-                new bootstrap.Modal(document.getElementById('modalPreview')).show();
-              });
+            document.querySelectorAll('.expediente-row').forEach(row => {
+                row.addEventListener('click', () => {
+                    const id = row.getAttribute('data-id');
+                    axios.post('{% url 'gestion:expediente-detalle-post' %}', { pk: id })
+                    .then(res => {
+                        this.modalData = res.data;
+                        console.log(this.modalData.clave_expediente);
+                        new bootstrap.Modal(document.getElementById('modalPreview')).show();
+                    })
+                    .catch(() => {
+                        alert('No se pudo cargar el detalle del expediente');
+                    });
+                });
             });
           });
         },

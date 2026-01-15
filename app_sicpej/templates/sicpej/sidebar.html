@@ -163,7 +163,7 @@
           <div data-i18n="Consultas">Consultas</div>
         </a>
         <ul class="menu-sub">
-          {% if user.configuracion.es_usuario_consulta %}
+          {% if user.configuracion.es_usuario_consulta or user.configuracion.es_administrador_general%}
           <li class="menu-item">
             <a href="{% url 'gestion:lista_paquetes' %}" class="menu-link">
               <div data-i18n="Paquetes">Paquetes</div>

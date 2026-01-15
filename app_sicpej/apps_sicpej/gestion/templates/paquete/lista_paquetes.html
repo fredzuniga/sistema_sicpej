@@ -32,193 +32,193 @@
         </div>
     </div>
     <div class="card-body">
-    {% include "paquete/filtros/filtro_lista_paquetes.html" %}
-<hr>
+        {% include "paquete/filtros/filtro_lista_paquetes.html" %}
+        <hr>
 
-<form method="post" id="asignarPaquetePerfil" action="{% url 'gestion:asignar_paquetes' %}">
-{% csrf_token %}
+        <form method="post" id="asignarPaquetePerfil" action="{% url 'gestion:asignar_paquetes' %}">
+        {% csrf_token %}
 
-        {% if not user.configuracion.es_usuario_consulta and not user.configuracion.es_capturista_regional %}
-        <div class="row">
-            <div class="col-sm-12 d-flex justify-content-end mb-3">
-                <button type="button" class="btn btn-primary me-2 waves-effect waves-light me-2" id="submitBtn">
-                        <i class="fas fa-save"></i> Asignar Paquete(s)
-                </button>
+            {% if not user.configuracion.es_usuario_consulta and not user.configuracion.es_capturista_regional %}
+            <div class="row">
+                <div class="col-sm-12 d-flex justify-content-end mb-3">
+                    <button type="button" class="btn btn-primary me-2 waves-effect waves-light me-2" id="submitBtn">
+                            <i class="fas fa-save"></i> Asignar Paquete(s)
+                    </button>
+                </div>
             </div>
-        </div>
-        {% endif %}
+            {% endif %}
 
-        <div class="table-responsive">
-            <table class="table table-bordered table-hover">
-                <thead class="thead-light">
-                    <tr>
-                        {% if not user.configuracion.es_usuario_consulta %} <th></th> {% endif %}
-                        <th>Clave Paquete</th>
-                        <th>Organo jurisdiccional</th>
-                        <th style="width: 150px;">Cantidad de expedientes</th>
-                        <th>Topografía</th>
-                        {% if not user.configuracion.es_capturista_regional %} <th>Estado</th>{% endif %}
-                        {% if user.configuracion.es_usuario_consulta %} <th>Órgano jurisdiccional</th> {% endif %}
-                        <th>Fecha Registro</th>
-                        <th>Medida</th>
-                        <th style="width: 250px;">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for paquete in paquetes %}
-                    <tr class="paquete-row" data-paquete="{{ paquete.pk }}">
-                        {% if not user.configuracion.es_usuario_consulta and not user.configuracion.es_capturista_regional %}
-                        <td>
-                            <input type="checkbox" name="expediente" id="expediente_{{ paquete.pk }}" value="{{ paquete.pk }}" />
-                        </td>
-                        {% endif %}
-                        <td>
-                            {% if paquete.tiene_extension %}
-                                <p class="toggle-extensiones" style="display: inline-block; font-size: 10px;" data-target="{{ paquete.pk }}">
-                                    ▼
-                                </p>
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                    <thead class="thead-light">
+                        <tr>
+                            {% if not user.configuracion.es_usuario_consulta %} <th></th> {% endif %}
+                            <th>Clave Paquete</th>
+                            <th>Organo jurisdiccional</th>
+                            <th style="width: 150px;">Cantidad de expedientes</th>
+                            <th>Topografía</th>
+                            {% if not user.configuracion.es_capturista_regional %} <th>Estado</th>{% endif %}
+                            {% if user.configuracion.es_usuario_consulta %} <th>Órgano jurisdiccional</th> {% endif %}
+                            <th>Fecha Registro</th>
+                            <th>Medida</th>
+                            <th style="width: 250px;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for paquete in paquetes %}
+                        <tr class="paquete-row" data-paquete="{{ paquete.pk }}">
+                            {% if not user.configuracion.es_usuario_consulta and not user.configuracion.es_capturista_regional %}
+                            <td>
+                                <input type="checkbox" name="expediente" id="expediente_{{ paquete.pk }}" value="{{ paquete.pk }}" />
+                            </td>
                             {% endif %}
-                            {{ paquete.clave_paquete }}
-                        </td>
-                        <td>{{ paquete.organo_jurisdiccional }}</td>
-                        <td>{{ paquete.num_expedientes }}</td>
-                        <td>{{ paquete.topografia|default:'-' }}</td>
-                        {% if not user.configuracion.es_capturista_regional %}
-                        <td>
-                            <span class="badge 
-                                {% if paquete.estatus == 1 %}bg-info
-                                {% elif paquete.estatus == 2 %}bg-warning
-                                {% else %}bg-success
-                                {% endif %}">
-                                {{ paquete.get_estatus_display }}
-                            </span> <br>
-                            
-                            {% if paquete.asignacion %}
-                                Asignado a : {{ paquete.asignacion.first.usuario_perfil.perfil.nombre }} ({{ paquete.asignacion.first.usuario_perfil.usuario.first_name }} {{ paquete.asignacion.first.usuario_perfil.usuario.last_name }})
-                                {% if not paquete.asignacion.first.usuario_perfil.estatus == 1 %}
-                                    — 
-                                    <span class="{% if paquete.asignacion.first.usuario_perfil.estatus == 1 %}text-success{% else %}text-danger{% endif %}">
-                                        
-                                            Inactivo
-                                        
-                                    </span>
+                            <td>
+                                {% if paquete.tiene_extension %}
+                                    <p class="toggle-extensiones" style="display: inline-block; font-size: 10px;" data-target="{{ paquete.pk }}">
+                                        ▼
+                                    </p>
                                 {% endif %}
-                            {% endif %}
-                        </td>
-                        {% endif %}
-                        {% if user.configuracion.es_usuario_consulta %}
-                        <td>{{ paquete.organo_jurisdiccional }}</td>
-                        {% endif %}
-                        <td>{{ paquete.fecha_registro|date:"d/m/Y" }}</td>
-                        <td>{{ paquete.total_medida_centimetros }} </td>
-                        <td>
-                            <div class="btn-group btn-group-sm">
-                                <a href="{% url 'gestion:ver_paquete' paquete.pk %}" class="btn btn-info" title="Ver">
-                                    <i class="icon-base ri ri-folder-transfer-line icon-16px"></i>
-                                </a>
-                                {% if paquete.ultimo %}
-                                    {% if not user.configuracion.es_usuario_consulta and not user.configuracion.es_capturista_regional %}
-                                    <a href="#" class="btn btn-primary" 
-                                        data-bs-toggle="modal" 
-                                        data-bs-target="#confirmModalNuevoExpediente"
-                                        data-url="{% url 'gestion:crear_extension_paquete' paquete.id %}"
-                                        data-clave="{{ paquete.clave_paquete }}">
-                                        <i class="icon-base ri ri-file-add-line icon-16px"></i>
-                                    </a>
+                                {{ paquete.clave_paquete }}
+                            </td>
+                            <td>{{ paquete.organo_jurisdiccional }}</td>
+                            <td>{{ paquete.num_expedientes }}</td>
+                            <td>{{ paquete.topografia|default:'-' }}</td>
+                            {% if not user.configuracion.es_capturista_regional %}
+                            <td>
+                                <span class="badge 
+                                    {% if paquete.estatus == 1 %}bg-info
+                                    {% elif paquete.estatus == 2 %}bg-warning
+                                    {% else %}bg-success
+                                    {% endif %}">
+                                    {{ paquete.get_estatus_display }}
+                                </span> <br>
+                                
+                                {% if paquete.asignacion %}
+                                    Asignado a : {{ paquete.asignacion.first.usuario_perfil.perfil.nombre }} ({{ paquete.asignacion.first.usuario_perfil.usuario.first_name }} {{ paquete.asignacion.first.usuario_perfil.usuario.last_name }})
+                                    {% if not paquete.asignacion.first.usuario_perfil.estatus == 1 %}
+                                        — 
+                                        <span class="{% if paquete.asignacion.first.usuario_perfil.estatus == 1 %}text-success{% else %}text-danger{% endif %}">
+                                            
+                                                Inactivo
+                                            
+                                        </span>
                                     {% endif %}
                                 {% endif %}
-                            </div>
-                            {% if not user.configuracion.es_usuario_consulta %}
-                            <a href="{% url 'gestion:editar_paquete' paquete.pk %}" class="btn btn-primary" title="Editar">
-                                <i class="icon-base ri ri-map-pin-add-fill icon-16px"></i>
-                            </a>
+                            </td>
                             {% endif %}
-                        </td>
-                    </tr>
-
-                        {# FILAS DE EXTENSIONES (OCULTAS AL INICIO) #}
-                        {% for ext in paquete.paquetes_extension %}
-                            <tr class="extension-row extension-of-{{ paquete.pk }}" style="display:none;">
-                                {% if not user.configuracion.es_usuario_consulta and not user.configuracion.es_capturista_regional %}
-                                <td>
-                                    <input type="checkbox" name="expediente" id="expediente_{{ ext.pk }}" value="{{ ext.pk }}" />
-                                </td>
-                                {% endif %}
-                                <td> ↳ {{ ext.clave_paquete }} </td>
-                                <td>{{ ext.organo_jurisdiccional }}</td>
-                                <td>{{ ext.num_expedientes }}</td>
-                                <td>{{ ext.topografia|default:'' }}</td>
-                                {% if not user.configuracion.es_capturista_regional %}
-                                <td>
-                                    <span class="badge 
-                                        {% if ext.estatus == 1 %}bg-info
-                                        {% elif ext.estatus == 2 %}bg-warning
-                                        {% else %}bg-success
-                                        {% endif %}">
-                                        {{ ext.get_estatus_display }}
-                                    </span>
-                                    {% if ext.asignacion %}
-                                        Asignado a : {{ ext.asignacion.first.usuario_perfil.perfil.nombre }} ({{ ext.asignacion.first.usuario_perfil.usuario.first_name }} {{ ext.asignacion.first.usuario_perfil.usuario.last_name }})
-
-                                        {% if not ext.asignacion.first.usuario_perfil.estatus == 1 %}
-                                            —
-                                            <span class="{% if ext.asignacion.first.usuario_perfil.estatus == 1 %}text-success{% else %}text-danger{% endif %}">
-                                                
-                                                    Inactivo
-                                                
-                                            </span>
-                                        {% endif %}
-                                    {% endif %}
-                                </td>
-                                {% endif %}
-                                {% if user.configuracion.es_usuario_consulta %}
-                                <td>{{ ext.organo_jurisdiccional }}</td>
-                                {% endif %}
-                                <td>{{ ext.fecha_registro|date:"d/m/Y" }}</td>
-                                <td>{{ ext.total_medida_centimetros }}</td>
-                                <td>
-                                    
-                                    <a href="{% url 'gestion:ver_paquete' ext.pk %}" class="btn btn-info btn-sm">
+                            {% if user.configuracion.es_usuario_consulta %}
+                            <td>{{ paquete.organo_jurisdiccional }}</td>
+                            {% endif %}
+                            <td>{{ paquete.fecha_registro|date:"d/m/Y" }}</td>
+                            <td>{{ paquete.total_medida_centimetros }} </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{% url 'gestion:ver_paquete' paquete.pk %}" class="btn btn-info" title="Ver">
                                         <i class="icon-base ri ri-folder-transfer-line icon-16px"></i>
                                     </a>
-                                    {% if ext.ultimo %}
+                                    {% if paquete.ultimo %}
                                         {% if not user.configuracion.es_usuario_consulta and not user.configuracion.es_capturista_regional %}
                                         <a href="#" class="btn btn-primary" 
                                             data-bs-toggle="modal" 
                                             data-bs-target="#confirmModalNuevoExpediente"
-                                            data-url="{% url 'gestion:crear_extension_paquete' ext.id %}"
-                                            data-clave="{{ ext.clave_paquete }}">
+                                            data-url="{% url 'gestion:crear_extension_paquete' paquete.id %}"
+                                            data-clave="{{ paquete.clave_paquete }}">
                                             <i class="icon-base ri ri-file-add-line icon-16px"></i>
                                         </a>
                                         {% endif %}
                                     {% endif %}
+                                </div>
+                                {% if not user.configuracion.es_usuario_consulta %}
+                                <a href="{% url 'gestion:editar_paquete' paquete.pk %}" class="btn btn-primary" title="Editar">
+                                    <i class="icon-base ri ri-map-pin-add-fill icon-16px"></i>
+                                </a>
+                                {% endif %}
+                            </td>
+                        </tr>
 
-                                    {% if not user.configuracion.es_usuario_consulta %}
-                                        <a href="{% url 'gestion:editar_paquete' ext.pk %}" class="btn btn-primary" title="Editar">
-                                            <i class="icon-base ri ri-map-pin-add-fill icon-16px"></i>
-                                        </a>
+                            {# FILAS DE EXTENSIONES (OCULTAS AL INICIO) #}
+                            {% for ext in paquete.paquetes_extension %}
+                                <tr class="extension-row extension-of-{{ paquete.pk }}" style="display:none;">
+                                    {% if not user.configuracion.es_usuario_consulta and not user.configuracion.es_capturista_regional %}
+                                    <td>
+                                        <input type="checkbox" name="expediente" id="expediente_{{ ext.pk }}" value="{{ ext.pk }}" />
+                                    </td>
                                     {% endif %}
-                                </td>
-                            </tr>
+                                    <td> ↳ {{ ext.clave_paquete }} </td>
+                                    <td>{{ ext.organo_jurisdiccional }}</td>
+                                    <td>{{ ext.num_expedientes }}</td>
+                                    <td>{{ ext.topografia|default:'' }}</td>
+                                    {% if not user.configuracion.es_capturista_regional %}
+                                    <td>
+                                        <span class="badge 
+                                            {% if ext.estatus == 1 %}bg-info
+                                            {% elif ext.estatus == 2 %}bg-warning
+                                            {% else %}bg-success
+                                            {% endif %}">
+                                            {{ ext.get_estatus_display }}
+                                        </span>
+                                        {% if ext.asignacion %}
+                                            Asignado a : {{ ext.asignacion.first.usuario_perfil.perfil.nombre }} ({{ ext.asignacion.first.usuario_perfil.usuario.first_name }} {{ ext.asignacion.first.usuario_perfil.usuario.last_name }})
+
+                                            {% if not ext.asignacion.first.usuario_perfil.estatus == 1 %}
+                                                —
+                                                <span class="{% if ext.asignacion.first.usuario_perfil.estatus == 1 %}text-success{% else %}text-danger{% endif %}">
+                                                    
+                                                        Inactivo
+                                                    
+                                                </span>
+                                            {% endif %}
+                                        {% endif %}
+                                    </td>
+                                    {% endif %}
+                                    {% if user.configuracion.es_usuario_consulta %}
+                                    <td>{{ ext.organo_jurisdiccional }}</td>
+                                    {% endif %}
+                                    <td>{{ ext.fecha_registro|date:"d/m/Y" }}</td>
+                                    <td>{{ ext.total_medida_centimetros }}</td>
+                                    <td>
+                                        
+                                        <a href="{% url 'gestion:ver_paquete' ext.pk %}" class="btn btn-info btn-sm">
+                                            <i class="icon-base ri ri-folder-transfer-line icon-16px"></i>
+                                        </a>
+                                        {% if ext.ultimo %}
+                                            {% if not user.configuracion.es_usuario_consulta and not user.configuracion.es_capturista_regional %}
+                                            <a href="#" class="btn btn-primary" 
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#confirmModalNuevoExpediente"
+                                                data-url="{% url 'gestion:crear_extension_paquete' ext.id %}"
+                                                data-clave="{{ ext.clave_paquete }}">
+                                                <i class="icon-base ri ri-file-add-line icon-16px"></i>
+                                            </a>
+                                            {% endif %}
+                                        {% endif %}
+
+                                        {% if not user.configuracion.es_usuario_consulta %}
+                                            <a href="{% url 'gestion:editar_paquete' ext.pk %}" class="btn btn-primary" title="Editar">
+                                                <i class="icon-base ri ri-map-pin-add-fill icon-16px"></i>
+                                            </a>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
                         {% endfor %}
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+                    </tbody>
+                </table>
+            </div>
         
-        {% if is_paginated %}
-        <div class="card-footer">
-            <div class="row">
-                <div class="col-md-12 m-5">
-                    {% include 'sicpej/partials/paginacion.html' %}
+            {% if is_paginated %}
+            <div class="card-footer">
+                <div class="row">
+                    <div class="col-md-12 m-5">
+                        {% include 'sicpej/partials/paginacion.html' %}
+                    </div>
                 </div>
             </div>
+            {% endif %}
+            {% include "paquete/modals/modal_asignar_perfil_paquete.html" %}
+            {% include "paquete/modals/modal_confirm_extension_paquete.html" %}
         </div>
-        {% endif %}
-        {% include "paquete/modals/modal_asignar_perfil_paquete.html" %}
-        {% include "paquete/modals/modal_confirm_extension_paquete.html" %}
     </div>
-</div>
 
 </form>
 

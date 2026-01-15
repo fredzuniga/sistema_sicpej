@@ -20,7 +20,8 @@ class UserWithConfigForm(UserCreationForm):
 
     archivo_regional = forms.ModelChoiceField(
         queryset=ArchivoRegional.objects.all(),
-        required=False
+        required=False,
+        label="Archivo Regional"
     )
 
     perfil_capturista = forms.ModelChoiceField(
@@ -85,6 +86,10 @@ class UserWithConfigForm(UserCreationForm):
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
+
+        self.fields['archivo_regional'].label_from_instance = (
+            lambda obj: f"{obj.nombre} ({obj.municipio.descripcion})"
+        )
 
         # Agregar clases CSS a todos los campos
         for field_name, field in self.fields.items():

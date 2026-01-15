@@ -35,6 +35,8 @@
             </td>
             <td>{{ expediente.fecha_concluido|date:"d/m/Y" }}</td>
             <td>
+                <a data-id="{{ expediente.pk }}" href="javascript:void(0)" class="expediente-row btn btn-primary">Ver</a>
+                
                 {% if not user.configuracion.es_usuario_consulta %}
                 <a href="{% url 'gestion:editar_expediente' expediente.pk %}" class="btn btn-primary" title="Editar">
                     Editar

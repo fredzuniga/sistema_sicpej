@@ -137,7 +137,7 @@ def registrar_login(sender, request, user, **kwargs):
 def registrar_logout(sender, request, user, **kwargs):
     LogCambio.objects.create(
         modelo="User",
-        instancia_id=user.pk if user else None,
+        instancia_id=user.pk if user else "N/A",
         usuario=user,
         accion="logout",
         valores_nuevos="",
@@ -148,7 +148,7 @@ def registrar_logout(sender, request, user, **kwargs):
 def registrar_login_fallido(sender, credentials, request, **kwargs):
     LogCambio.objects.create(
         modelo="User",
-        instancia_id=None,
+        instancia_id="N/A",
         usuario=None,
         accion="login_failed",
         valores_nuevos=json.dumps({"username": credentials.get("username")}, default=str),
